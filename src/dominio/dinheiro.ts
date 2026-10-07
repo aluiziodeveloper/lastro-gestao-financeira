@@ -1,4 +1,5 @@
 import type { ObjetoDeValor } from './objeto-de-valor.js';
+import type { Quantidade } from './quantidade.js';
 
 // #region dinheiro-classe
 export class Dinheiro implements ObjetoDeValor<Dinheiro> {
@@ -23,6 +24,12 @@ export class Dinheiro implements ObjetoDeValor<Dinheiro> {
 
   subtrair(outro: Dinheiro): Dinheiro {
     return new Dinheiro(this.#centavos - outro.#centavos);
+  }
+  // #endregion
+
+  // #region dinheiro-multiplicar
+  multiplicarPor(quantidade: Quantidade): Dinheiro {
+    return new Dinheiro(this.#centavos * quantidade.paraBigInt());
   }
   // #endregion
 }

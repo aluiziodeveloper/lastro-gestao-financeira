@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { Dinheiro } from '../../src/dominio/dinheiro.js';
+import { Quantidade } from '../../src/dominio/quantidade.js';
 
 // #region dinheiro-criacao-teste
 describe('Dinheiro', () => {
@@ -51,6 +52,26 @@ describe('Dinheiro: soma e subtração', () => {
     const dezCentavos = Dinheiro.deCentavos(10n);
     dezCentavos.somar(Dinheiro.deCentavos(20n));
     expect(dezCentavos).toEqual(Dinheiro.deCentavos(10n));
+  });
+});
+// #endregion
+
+// #region dinheiro-multiplicar-teste
+describe('Dinheiro: multiplicação por quantidade', () => {
+  it('vale R$ 115,00 para 100 ações a R$ 1,15', () => {
+    const total = Dinheiro.deCentavos(1_15n).multiplicarPor(
+      Quantidade.de(100),
+    );
+    expect(total).toEqual(Dinheiro.deCentavos(115_00n));
+  });
+
+  it('continua exato além do maior inteiro exato de um number', () => {
+    const total = Dinheiro.deCentavos(1_00n).multiplicarPor(
+      Quantidade.de(Number.MAX_SAFE_INTEGER),
+    );
+    expect(total).toEqual(
+      Dinheiro.deCentavos(9_007_199_254_740_991_00n),
+    );
   });
 });
 // #endregion

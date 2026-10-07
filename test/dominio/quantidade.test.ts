@@ -16,6 +16,12 @@ describe('Quantidade', () => {
     expect(() => Quantidade.de(Number.MAX_SAFE_INTEGER)).not.toThrow();
   });
 
+  it('converte as unidades para bigint sem perda', () => {
+    expect(Quantidade.de(Number.MAX_SAFE_INTEGER).paraBigInt()).toBe(
+      9_007_199_254_740_991n,
+    );
+  });
+
   it.each([
     ['zero', 0],
     ['negativa', -1],

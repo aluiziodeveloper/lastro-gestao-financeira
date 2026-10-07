@@ -20,5 +20,9 @@ export class Quantidade implements ObjetoDeValor<Quantidade> {
   equivaleA(outra: Quantidade): boolean {
     return this.#unidades === outra.#unidades;
   }
+
+  paraBigInt(): bigint {
+    return BigInt(this.#unidades);
+  }
 }
 // #endregion
