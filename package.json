@@ -8,5 +8,11 @@
     "node": ">=24"
   },
   "author": "Jorge Aluizio Alves de Souza",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "6.0.3"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  }
 }
