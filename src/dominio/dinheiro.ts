@@ -15,5 +15,15 @@ export class Dinheiro implements ObjetoDeValor<Dinheiro> {
   equivaleA(outro: Dinheiro): boolean {
     return this.#centavos === outro.#centavos;
   }
+
+  // #region dinheiro-somar-subtrair
+  somar(outro: Dinheiro): Dinheiro {
+    return new Dinheiro(this.#centavos + outro.#centavos);
+  }
+
+  subtrair(outro: Dinheiro): Dinheiro {
+    return new Dinheiro(this.#centavos - outro.#centavos);
+  }
+  // #endregion
 }
 // #endregion
