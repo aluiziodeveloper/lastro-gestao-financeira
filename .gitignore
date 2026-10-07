@@ -1,0 +1,19 @@
+# Dependências
+node_modules/
+
+# Artefatos gerados
+dist/
+coverage/
+reports/
+.stryker-tmp/
+
+# Editores e sistema operacional
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+*:Zone.Identifier
+
+# Variáveis locais
+.env

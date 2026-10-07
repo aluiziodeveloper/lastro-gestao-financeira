@@ -1,0 +1,12 @@
+{
+  "name": "lastro",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Motor de cálculo e gestão de carteiras de investimento para pessoa física, projeto-guia do livro Domínio à Prova de Bugs",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "author": "Jorge Aluizio Alves de Souza",
+  "license": "MIT"
+}
