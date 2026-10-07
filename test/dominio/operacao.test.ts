@@ -9,3 +9,13 @@ describe('valor bruto da operação', () => {
   });
 });
 // #endregion
+
+// #region operacao-valor-bruto-centavos
+describe('valor bruto da operação com centavos em number', () => {
+  // Teste de caracterização: fixa o resultado atual, que está errado.
+  // O valor certo, R$ 115,00, chega com os objetos de valor.
+  it('devolve 114.99999999999999 para 100 ações a R$ 1,15', () => {
+    expect(valorBrutoDaOperacao(1.15, 100)).toBe(114.99999999999999);
+  });
+});
+// #endregion
