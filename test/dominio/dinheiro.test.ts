@@ -75,3 +75,18 @@ describe('Dinheiro: multiplicação por quantidade', () => {
   });
 });
 // #endregion
+
+// #region dinheiro-inspecionar-teste
+describe('Dinheiro na mensagem de falha', () => {
+  it('mostra os centavos de cada lado da comparação', () => {
+    expect(() => {
+      expect(Dinheiro.deCentavos(10n)).toEqual(
+        Dinheiro.deCentavos(20n),
+      );
+    }).toThrow(
+      'expected Dinheiro(10 centavos) to deeply equal ' +
+        'Dinheiro(20 centavos)',
+    );
+  });
+});
+// #endregion

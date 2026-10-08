@@ -22,6 +22,14 @@ describe('Quantidade', () => {
     );
   });
 
+  it('mostra as unidades na mensagem de falha', () => {
+    expect(() => {
+      expect(Quantidade.de(100)).toEqual(Quantidade.de(200));
+    }).toThrow(
+      'expected Quantidade(100) to deeply equal Quantidade(200)',
+    );
+  });
+
   it.each([
     ['zero', 0],
     ['negativa', -1],

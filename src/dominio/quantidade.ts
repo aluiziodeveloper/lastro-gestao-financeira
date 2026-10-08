@@ -1,4 +1,4 @@
-import type { ObjetoDeValor } from './objeto-de-valor.js';
+import { inspecionar, type ObjetoDeValor } from './objeto-de-valor.js';
 
 // #region quantidade-classe
 export class Quantidade implements ObjetoDeValor<Quantidade> {
@@ -19,6 +19,10 @@ export class Quantidade implements ObjetoDeValor<Quantidade> {
 
   equivaleA(outra: Quantidade): boolean {
     return this.#unidades === outra.#unidades;
+  }
+
+  [inspecionar](): string {
+    return `Quantidade(${String(this.#unidades)})`;
   }
 
   paraBigInt(): bigint {

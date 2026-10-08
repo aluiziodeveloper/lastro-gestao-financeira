@@ -1,4 +1,4 @@
-import type { ObjetoDeValor } from './objeto-de-valor.js';
+import { inspecionar, type ObjetoDeValor } from './objeto-de-valor.js';
 import type { Quantidade } from './quantidade.js';
 
 // #region dinheiro-classe
@@ -16,6 +16,12 @@ export class Dinheiro implements ObjetoDeValor<Dinheiro> {
   equivaleA(outro: Dinheiro): boolean {
     return this.#centavos === outro.#centavos;
   }
+
+  // #region dinheiro-inspecionar
+  [inspecionar](): string {
+    return `Dinheiro(${String(this.#centavos)} centavos)`;
+  }
+  // #endregion
 
   // #region dinheiro-somar-subtrair
   somar(outro: Dinheiro): Dinheiro {
