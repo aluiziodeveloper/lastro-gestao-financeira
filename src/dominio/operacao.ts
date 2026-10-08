@@ -1,6 +1,7 @@
 import type { DataDePregao } from './data-de-pregao.js';
 import type { Dinheiro } from './dinheiro.js';
 import type { ErroDeOperacao } from './erros.js';
+import { garantirExaustividade } from './exaustividade.js';
 import type { IdDeOperacao } from './id-de-operacao.js';
 import type { Marcado } from './marca.js';
 import type { Quantidade } from './quantidade.js';
@@ -67,6 +68,20 @@ function primeiroErro(
   }
   return undefined;
 }
+
+// #region operacao-variacao-na-posicao
+// Quanto a operação muda a posição: compra soma, venda subtrai.
+export function variacaoNaPosicao(operacao: Operacao): bigint {
+  switch (operacao.tipo) {
+    case 'compra':
+      return operacao.quantidade.paraBigInt();
+    case 'venda':
+      return -operacao.quantidade.paraBigInt();
+    default:
+      return garantirExaustividade(operacao);
+  }
+}
+// #endregion
 
 // #region operacao-valor-bruto
 export function valorBrutoDaOperacao(

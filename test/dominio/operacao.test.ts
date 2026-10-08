@@ -7,6 +7,8 @@ import {
   type CamposDaOperacao,
   criarCompra,
   criarVenda,
+  type Operacao,
+  variacaoNaPosicao,
   valorBrutoDaOperacao,
 } from '../../src/dominio/operacao.js';
 import { Quantidade } from '../../src/dominio/quantidade.js';
@@ -100,3 +102,22 @@ describe('construtores de compra e venda', () => {
   });
 });
 // #endregion
+
+describe('variação na posição', () => {
+  it('soma a quantidade de uma compra', () => {
+    const compra = extrair(criarCompra(camposValidos()));
+    expect(variacaoNaPosicao(compra)).toBe(100n);
+  });
+
+  it('subtrai a quantidade de uma venda', () => {
+    const venda = extrair(criarVenda(camposValidos()));
+    expect(variacaoNaPosicao(venda)).toBe(-100n);
+  });
+
+  it('lança diante de um tipo que burlou o compilador', () => {
+    const intrusa = { tipo: 'transferencia' } as unknown as Operacao;
+    expect(() => variacaoNaPosicao(intrusa)).toThrow(
+      'Caso não tratado',
+    );
+  });
+});
