@@ -1,4 +1,12 @@
 import { inspecionar, type ObjetoDeValor } from './objeto-de-valor.js';
+import { err, ok, type Result } from './resultado.js';
+
+// #region erro-de-ticker
+export interface ErroDeTicker {
+  readonly tipo: 'ticker-fora-do-formato';
+  readonly texto: string;
+}
+// #endregion
 
 // #region ticker-classe
 // Quatro letras e um ou dois dígitos: PETR4, VALE3, BOVA11. O sufixo F
@@ -12,13 +20,15 @@ export class Ticker implements ObjetoDeValor<Ticker> {
     this.#codigo = codigo;
   }
 
-  static de(texto: string): Ticker {
+  // #region ticker-criar
+  static criar(texto: string): Result<Ticker, ErroDeTicker> {
     const codigo = texto.trim().toUpperCase();
     if (!formatoDaB3.test(codigo)) {
-      throw new Error(`Ticker fora do formato da B3: '${texto}'`);
+      return err({ tipo: 'ticker-fora-do-formato', texto });
     }
-    return new Ticker(codigo);
+    return ok(new Ticker(codigo));
   }
+  // #endregion
 
   equivaleA(outro: Ticker): boolean {
     return this.#codigo === outro.#codigo;

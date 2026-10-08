@@ -1,19 +1,27 @@
 import { describe, expect, it } from 'vitest';
 
+import { err } from '../../src/dominio/resultado.js';
 import { Ticker } from '../../src/dominio/ticker.js';
+import { extrair } from '../apoio/resultado.js';
 
 // #region ticker-teste
 describe('Ticker', () => {
   it('normaliza espaços nas pontas e letras minúsculas', () => {
-    expect(Ticker.de(' petr4 ')).toEqual(Ticker.de('PETR4'));
+    expect(extrair(Ticker.criar(' petr4 '))).toEqual(
+      extrair(Ticker.criar('PETR4')),
+    );
   });
 
   it('não equivale a outro código', () => {
-    expect(Ticker.de('PETR4')).not.toEqual(Ticker.de('PETR3'));
+    expect(extrair(Ticker.criar('PETR4'))).not.toEqual(
+      extrair(Ticker.criar('PETR3')),
+    );
   });
 
   it('aceita código com dois dígitos', () => {
-    expect(Ticker.de('BOVA11')).toEqual(Ticker.de('bova11'));
+    expect(extrair(Ticker.criar('BOVA11'))).toEqual(
+      extrair(Ticker.criar('bova11')),
+    );
   });
 
   it.each([
@@ -26,15 +34,17 @@ describe('Ticker', () => {
     ['do mercado fracionário', 'PETR4F'],
     ['com letra acentuada', 'ÇETR4'],
     ['só com símbolos', '???'],
-  ])('rejeita código %s', (_descricao, texto) => {
-    expect(() => Ticker.de(texto)).toThrow(
-      `Ticker fora do formato da B3: '${texto}'`,
+  ])('recusa código %s', (_descricao, texto) => {
+    expect(Ticker.criar(texto)).toEqual(
+      err({ tipo: 'ticker-fora-do-formato', texto }),
     );
   });
 
   it('mostra o código na mensagem de falha', () => {
     expect(() => {
-      expect(Ticker.de('PETR4')).toEqual(Ticker.de('VALE3'));
+      expect(extrair(Ticker.criar('PETR4'))).toEqual(
+        extrair(Ticker.criar('VALE3')),
+      );
     }).toThrow('expected Ticker(PETR4) to deeply equal Ticker(VALE3)');
   });
 });

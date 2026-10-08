@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { extrair } from '../apoio/resultado.js';
 import { Dinheiro } from '../../src/dominio/dinheiro.js';
 import { valorBrutoDaOperacao } from '../../src/dominio/operacao.js';
 import { Quantidade } from '../../src/dominio/quantidade.js';
@@ -10,7 +11,7 @@ describe('valor bruto da operação', () => {
     expect(
       valorBrutoDaOperacao(
         Dinheiro.deCentavos(10_00n),
-        Quantidade.de(100),
+        extrair(Quantidade.criar(100)),
       ),
     ).toEqual(Dinheiro.deCentavos(1_000_00n));
   });
@@ -23,7 +24,7 @@ describe('valor bruto da operação com centavos', () => {
     expect(
       valorBrutoDaOperacao(
         Dinheiro.deCentavos(1_15n),
-        Quantidade.de(100),
+        extrair(Quantidade.criar(100)),
       ),
     ).toEqual(Dinheiro.deCentavos(115_00n));
   });

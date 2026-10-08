@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import { extrair } from '../apoio/resultado.js';
 import { Dinheiro } from '../../src/dominio/dinheiro.js';
 import { Quantidade } from '../../src/dominio/quantidade.js';
 
@@ -60,14 +61,14 @@ describe('Dinheiro: soma e subtração', () => {
 describe('Dinheiro: multiplicação por quantidade', () => {
   it('vale R$ 115,00 para 100 ações a R$ 1,15', () => {
     const total = Dinheiro.deCentavos(1_15n).multiplicarPor(
-      Quantidade.de(100),
+      extrair(Quantidade.criar(100)),
     );
     expect(total).toEqual(Dinheiro.deCentavos(115_00n));
   });
 
   it('continua exato além do maior inteiro exato de um number', () => {
     const total = Dinheiro.deCentavos(1_00n).multiplicarPor(
-      Quantidade.de(Number.MAX_SAFE_INTEGER),
+      extrair(Quantidade.criar(Number.MAX_SAFE_INTEGER)),
     );
     expect(total).toEqual(
       Dinheiro.deCentavos(9_007_199_254_740_991_00n),
@@ -105,7 +106,7 @@ describe('Dinheiro: divisão com arredondamento explícito', () => {
     ['meio-par', '−2,5 a −2', -5n, -2n],
   ] as const)('%s leva %s', (modo, _caso, centavos, esperado) => {
     const metade = Dinheiro.deCentavos(centavos).dividirPor(
-      Quantidade.de(2),
+      extrair(Quantidade.criar(2)),
       modo,
     );
     expect(metade).toEqual(Dinheiro.deCentavos(esperado));
@@ -125,7 +126,7 @@ describe('Dinheiro: divisão longe do meio', () => {
     ['meio-par', '2 a 2', 6n, 2n],
   ] as const)('%s leva %s', (modo, _caso, centavos, esperado) => {
     const terco = Dinheiro.deCentavos(centavos).dividirPor(
-      Quantidade.de(3),
+      extrair(Quantidade.criar(3)),
       modo,
     );
     expect(terco).toEqual(Dinheiro.deCentavos(esperado));

@@ -1,4 +1,22 @@
 import { inspecionar, type ObjetoDeValor } from './objeto-de-valor.js';
+import { err, ok, type Result } from './resultado.js';
+
+// #region erro-de-quantidade
+// Cada erro diz o fato de negócio que impede a quantidade de existir.
+export type ErroDeQuantidade =
+  | {
+      readonly tipo: 'quantidade-nao-inteira';
+      readonly unidades: number;
+    }
+  | {
+      readonly tipo: 'quantidade-nao-positiva';
+      readonly unidades: number;
+    }
+  | {
+      readonly tipo: 'quantidade-acima-do-limite';
+      readonly unidades: number;
+    };
+// #endregion
 
 // #region quantidade-classe
 export class Quantidade implements ObjetoDeValor<Quantidade> {
@@ -8,14 +26,20 @@ export class Quantidade implements ObjetoDeValor<Quantidade> {
     this.#unidades = unidades;
   }
 
-  static de(unidades: number): Quantidade {
-    if (!Number.isSafeInteger(unidades) || unidades <= 0) {
-      throw new RangeError(
-        `Quantidade deve ser inteira e positiva: ${String(unidades)}`,
-      );
+  // #region quantidade-criar
+  static criar(unidades: number): Result<Quantidade, ErroDeQuantidade> {
+    if (!Number.isInteger(unidades)) {
+      return err({ tipo: 'quantidade-nao-inteira', unidades });
     }
-    return new Quantidade(unidades);
+    if (unidades <= 0) {
+      return err({ tipo: 'quantidade-nao-positiva', unidades });
+    }
+    if (!Number.isSafeInteger(unidades)) {
+      return err({ tipo: 'quantidade-acima-do-limite', unidades });
+    }
+    return ok(new Quantidade(unidades));
   }
+  // #endregion
 
   equivaleA(outra: Quantidade): boolean {
     return this.#unidades === outra.#unidades;
