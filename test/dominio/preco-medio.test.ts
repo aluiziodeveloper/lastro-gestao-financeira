@@ -131,6 +131,53 @@ describe('Posicao.precoMedio', () => {
     );
   });
 
+  // #region pm-encerrar-teste
+  it('zera o preço médio ao vender toda a posição', () => {
+    const posicao = extrair(
+      cenaDaCorretora().vender(
+        umaVenda({ quantidade: 300, precoEmCentavos: 41_00n }),
+      ),
+    );
+
+    expect(posicao.precoMedio('meio-para-cima')).toEqual(
+      Dinheiro.deCentavos(0n),
+    );
+  });
+  // #endregion
+
+  it('recomeça o preço médio na compra depois de zerar', () => {
+    const posicao = extrair(
+      extrair(
+        cenaDaCorretora().vender(
+          umaVenda({ quantidade: 300, precoEmCentavos: 41_00n }),
+        ),
+      ).comprar(
+        umaCompra({ quantidade: 100, precoEmCentavos: 40_00n }),
+      ),
+    );
+
+    expect(posicao.precoMedio('meio-para-cima')).toEqual(
+      Dinheiro.deCentavos(40_00n),
+    );
+  });
+
+  it('recusa a venda depois de zerar a posição', () => {
+    const zerada = extrair(
+      cenaDaCorretora().vender(
+        umaVenda({ quantidade: 300, precoEmCentavos: 41_00n }),
+      ),
+    );
+    const venda = umaVenda({ quantidade: 1, precoEmCentavos: 41_00n });
+
+    expect(zerada.vender(venda)).toEqual(
+      err({
+        tipo: 'venda-acima-da-posicao',
+        emCarteira: undefined,
+        vendida: venda.quantidade,
+      }),
+    );
+  });
+
   it('recusa a compra que leva a quantidade acima do limite', () => {
     const posicao = Posicao.abrir(
       umaCompra({
