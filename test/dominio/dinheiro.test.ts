@@ -90,3 +90,44 @@ describe('Dinheiro na mensagem de falha', () => {
   });
 });
 // #endregion
+
+// #region dinheiro-dividir-teste
+describe('Dinheiro: divisão com arredondamento explícito', () => {
+  it.each([
+    ['truncar', '2,5 a 2', 5n, 2n],
+    ['truncar', '3,5 a 3', 7n, 3n],
+    ['truncar', '−2,5 a −2', -5n, -2n],
+    ['meio-para-cima', '2,5 a 3', 5n, 3n],
+    ['meio-para-cima', '3,5 a 4', 7n, 4n],
+    ['meio-para-cima', '−2,5 a −3', -5n, -3n],
+    ['meio-par', '2,5 a 2', 5n, 2n],
+    ['meio-par', '3,5 a 4', 7n, 4n],
+    ['meio-par', '−2,5 a −2', -5n, -2n],
+  ] as const)('%s leva %s', (modo, _caso, centavos, esperado) => {
+    const metade = Dinheiro.deCentavos(centavos).dividirPor(
+      Quantidade.de(2),
+      modo,
+    );
+    expect(metade).toEqual(Dinheiro.deCentavos(esperado));
+  });
+});
+// #endregion
+
+describe('Dinheiro: divisão longe do meio', () => {
+  it.each([
+    ['truncar', '1,33 a 1', 4n, 1n],
+    ['meio-para-cima', '1,33 a 1', 4n, 1n],
+    ['meio-par', '1,33 a 1', 4n, 1n],
+    ['truncar', '1,67 a 1', 5n, 1n],
+    ['meio-para-cima', '1,67 a 2', 5n, 2n],
+    ['meio-par', '1,67 a 2', 5n, 2n],
+    ['meio-para-cima', '−1,67 a −2', -5n, -2n],
+    ['meio-par', '2 a 2', 6n, 2n],
+  ] as const)('%s leva %s', (modo, _caso, centavos, esperado) => {
+    const terco = Dinheiro.deCentavos(centavos).dividirPor(
+      Quantidade.de(3),
+      modo,
+    );
+    expect(terco).toEqual(Dinheiro.deCentavos(esperado));
+  });
+});

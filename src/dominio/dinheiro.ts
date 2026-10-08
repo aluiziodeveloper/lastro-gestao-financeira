@@ -1,3 +1,7 @@
+import {
+  dividirArredondando,
+  type ModoDeArredondamento,
+} from './arredondamento.js';
 import { inspecionar, type ObjetoDeValor } from './objeto-de-valor.js';
 import type { Quantidade } from './quantidade.js';
 
@@ -36,6 +40,17 @@ export class Dinheiro implements ObjetoDeValor<Dinheiro> {
   // #region dinheiro-multiplicar
   multiplicarPor(quantidade: Quantidade): Dinheiro {
     return new Dinheiro(this.#centavos * quantidade.paraBigInt());
+  }
+  // #endregion
+
+  // #region dinheiro-dividir
+  dividirPor(
+    divisor: Quantidade,
+    modo: ModoDeArredondamento,
+  ): Dinheiro {
+    return new Dinheiro(
+      dividirArredondando(this.#centavos, divisor.paraBigInt(), modo),
+    );
   }
   // #endregion
 }
