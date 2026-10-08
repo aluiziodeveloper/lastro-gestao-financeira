@@ -19,6 +19,16 @@ export interface ErroDePosicao {
 const arredondamentoDaBaixa: ModoDeArredondamento = 'meio-para-cima';
 // #endregion
 
+// #region custo-de-aquisicao
+// Os custos da nota entram no custo de aquisição (IN RFB 1.585/2015,
+// art. 56, § 3º).
+function custoDeAquisicao(compra: Compra): Dinheiro {
+  return compra.precoUnitario
+    .multiplicarPor(compra.quantidade)
+    .somar(compra.custos);
+}
+// #endregion
+
 // #region posicao-primeira-compra
 // A posição de um ativo guarda o custo total e a quantidade; o preço
 // médio é calculado a partir dos dois, quando alguém pergunta. Sem
@@ -39,16 +49,8 @@ export class Posicao {
     return new Posicao(undefined, Dinheiro.deCentavos(0n));
   }
 
-  // #region posicao-custos-operacionais
-  // Os custos da nota entram no custo de aquisição (IN RFB 1.585/2015,
-  // art. 56, § 3º).
   static abrir(compra: Compra): Posicao {
-    return new Posicao(
-      compra.quantidade,
-      compra.precoUnitario
-        .multiplicarPor(compra.quantidade)
-        .somar(compra.custos),
-    );
+    return new Posicao(compra.quantidade, custoDeAquisicao(compra));
   }
 
   // #region posicao-comprar
@@ -60,14 +62,13 @@ export class Posicao {
     if (!quantidade.ok) {
       return quantidade;
     }
-    const custo = compra.precoUnitario
-      .multiplicarPor(compra.quantidade)
-      .somar(compra.custos);
     return ok(
-      new Posicao(quantidade.valor, this.#custoTotal.somar(custo)),
+      new Posicao(
+        quantidade.valor,
+        this.#custoTotal.somar(custoDeAquisicao(compra)),
+      ),
     );
   }
-  // #endregion
   // #endregion
 
   // #region posicao-vender
