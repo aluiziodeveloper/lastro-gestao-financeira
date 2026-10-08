@@ -1,4 +1,5 @@
 import eslint from '@eslint/js';
+import stylistic from '@stylistic/eslint-plugin';
 import prettier from 'eslint-config-prettier';
 import { defineConfig } from 'eslint/config';
 import tseslint from 'typescript-eslint';
@@ -52,4 +53,18 @@ export default defineConfig(
     extends: [tseslint.configs.disableTypeChecked],
   },
   prettier,
+  // #region largura-dos-comentarios
+  // O Prettier quebra o código em 72 colunas, mas não os comentários,
+  // e as listagens do livro têm 72. Fica depois de `prettier`, que
+  // desliga as regras de largura.
+  {
+    plugins: { '@stylistic': stylistic },
+    rules: {
+      '@stylistic/max-len': [
+        'error',
+        { code: 200, comments: 72, ignoreUrls: true },
+      ],
+    },
+  },
+  // #endregion
 );
