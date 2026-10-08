@@ -27,6 +27,22 @@ describe('Quantidade', () => {
     expect(maior.paraBigInt()).toBe(9_007_199_254_740_991n);
   });
 
+  it('soma as unidades de duas quantidades', () => {
+    const duzentas = extrair(Quantidade.criar(200));
+    const cem = extrair(Quantidade.criar(100));
+    expect(duzentas.somar(cem)).toEqual(Quantidade.criar(300));
+  });
+
+  it('recusa a soma que passa do maior inteiro exato', () => {
+    const maior = extrair(Quantidade.criar(Number.MAX_SAFE_INTEGER));
+    expect(maior.somar(extrair(Quantidade.criar(1)))).toEqual(
+      err({
+        tipo: 'quantidade-acima-do-limite',
+        unidades: Number.MAX_SAFE_INTEGER + 1,
+      }),
+    );
+  });
+
   it('mostra as unidades na mensagem de falha', () => {
     expect(() => {
       expect(extrair(Quantidade.criar(100))).toEqual(

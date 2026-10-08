@@ -1,27 +1,18 @@
 import { describe, expect, it } from 'vitest';
 
-import { criarDataDePregao } from '../../src/dominio/data-de-pregao.js';
 import { Dinheiro } from '../../src/dominio/dinheiro.js';
-import { criarIdDeOperacao } from '../../src/dominio/id-de-operacao.js';
-import { criarCompra } from '../../src/dominio/operacao.js';
 import { Posicao } from '../../src/dominio/posicao.js';
-import { Quantidade } from '../../src/dominio/quantidade.js';
-import { Ticker } from '../../src/dominio/ticker.js';
+import { err } from '../../src/dominio/resultado.js';
 import { extrair } from '../apoio/resultado.js';
+import { umaCompra } from './construtores.js';
 
-// #region pm-primeira-compra-teste
 describe('Posicao.precoMedio', () => {
+  // #region pm-primeira-compra-teste
   it('retorna o preço unitário após abrir com uma compra', () => {
-    const compra = extrair(
-      criarCompra({
-        id: extrair(criarIdDeOperacao('op-001')),
-        data: extrair(criarDataDePregao('2026-03-02')),
-        ticker: extrair(Ticker.criar('PETR4')),
-        quantidade: extrair(Quantidade.criar(200)),
-        precoUnitario: Dinheiro.deCentavos(36_20n),
-        custos: Dinheiro.deCentavos(0n),
-      }),
-    );
+    const compra = umaCompra({
+      quantidade: 200,
+      precoEmCentavos: 36_20n,
+    });
 
     const posicao = Posicao.abrir(compra);
 
@@ -29,5 +20,41 @@ describe('Posicao.precoMedio', () => {
       Dinheiro.deCentavos(36_20n),
     );
   });
+  // #endregion
+
+  // #region pm-compras-sucessivas-teste
+  it('retorna a média ponderada após comprar de novo', () => {
+    const posicao = extrair(
+      Posicao.abrir(
+        umaCompra({ quantidade: 200, precoEmCentavos: 36_20n }),
+      ).comprar(
+        umaCompra({ quantidade: 100, precoEmCentavos: 38_90n }),
+      ),
+    );
+
+    expect(posicao.precoMedio('meio-para-cima')).toEqual(
+      Dinheiro.deCentavos(37_10n),
+    );
+  });
+  // #endregion
+
+  it('recusa a compra que leva a quantidade acima do limite', () => {
+    const posicao = Posicao.abrir(
+      umaCompra({
+        quantidade: Number.MAX_SAFE_INTEGER,
+        precoEmCentavos: 1n,
+      }),
+    );
+
+    expect(
+      posicao.comprar(
+        umaCompra({ quantidade: 1, precoEmCentavos: 1n }),
+      ),
+    ).toEqual(
+      err({
+        tipo: 'quantidade-acima-do-limite',
+        unidades: Number.MAX_SAFE_INTEGER + 1,
+      }),
+    );
+  });
 });
-// #endregion

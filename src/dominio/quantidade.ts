@@ -49,6 +49,13 @@ export class Quantidade implements ObjetoDeValor<Quantidade> {
     return `Quantidade(${String(this.#unidades)})`;
   }
 
+  // #region quantidade-somar
+  // A soma de duas quantidades válidas ainda pode passar do limite.
+  somar(outra: Quantidade): Result<Quantidade, ErroDeQuantidade> {
+    return Quantidade.criar(this.#unidades + outra.#unidades);
+  }
+  // #endregion
+
   paraBigInt(): bigint {
     return BigInt(this.#unidades);
   }
