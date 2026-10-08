@@ -57,16 +57,22 @@ export function criarVenda(
 function primeiroErro(
   campos: CamposDaOperacao,
 ): ErroDeOperacao | undefined {
-  if (!campos.precoUnitario.ehPositivo()) {
-    return {
-      tipo: 'preco-nao-positivo',
-      precoUnitario: campos.precoUnitario,
-    };
+  return errosDosValores(campos.precoUnitario, campos.custos)[0];
+}
+
+// Todos os erros de preço e custos, para quem precisa acumulá-los.
+export function errosDosValores(
+  precoUnitario: Dinheiro,
+  custos: Dinheiro,
+): readonly ErroDeOperacao[] {
+  const erros: ErroDeOperacao[] = [];
+  if (!precoUnitario.ehPositivo()) {
+    erros.push({ tipo: 'preco-nao-positivo', precoUnitario });
   }
-  if (campos.custos.ehNegativo()) {
-    return { tipo: 'custos-negativos', custos: campos.custos };
+  if (custos.ehNegativo()) {
+    erros.push({ tipo: 'custos-negativos', custos });
   }
-  return undefined;
+  return erros;
 }
 
 // #region operacao-variacao-na-posicao
