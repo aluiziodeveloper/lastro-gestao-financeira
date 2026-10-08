@@ -131,3 +131,39 @@ describe('Dinheiro: divisão longe do meio', () => {
     expect(terco).toEqual(Dinheiro.deCentavos(esperado));
   });
 });
+
+// #region dinheiro-de-texto-teste
+describe('Dinheiro.deTexto (desafio do Capítulo 2)', () => {
+  it.each([
+    ['1.234,56', 1_234_56n],
+    ['1234,56', 1_234_56n],
+    ['1.234', 1_234_00n],
+    ['0,05', 5n],
+    ['-1.234,56', -1_234_56n],
+    [' 10,00 ', 10_00n],
+    ['90.071.992.547.409.919,99', 90_071_992_547_409_919_99n],
+  ])('converte %s', (texto, centavos) => {
+    expect(Dinheiro.deTexto(texto)).toEqual(
+      Dinheiro.deCentavos(centavos),
+    );
+  });
+
+  it.each([
+    ['vazio', ''],
+    ['com duas vírgulas', '1,2,3'],
+    ['com símbolo da moeda', 'R$ 10'],
+    ['com uma casa decimal', '10,5'],
+    ['com três casas decimais', '1,234'],
+    ['com milhar mal agrupado', '12.34,56'],
+    ['com quatro dígitos antes do milhar', '1234.567,89'],
+    ['com ponto como decimal', '1.234.56'],
+    ['sem parte inteira', ',50'],
+    ['com sinal de mais', '+10,00'],
+    ['com letras', 'dez reais'],
+  ])('rejeita texto %s', (_descricao, texto) => {
+    expect(() => Dinheiro.deTexto(texto)).toThrow(
+      `Dinheiro fora do formato da nota: '${texto}'`,
+    );
+  });
+});
+// #endregion

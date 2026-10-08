@@ -17,6 +17,13 @@ export class Dinheiro implements ObjetoDeValor<Dinheiro> {
     return new Dinheiro(centavos);
   }
 
+  // Desafio do Capítulo 2: converta o texto da nota de corretagem para
+  // centavos sem passar por number. Os testes estão em
+  // test/dominio/dinheiro.test.ts, na região dinheiro-de-texto-teste.
+  static deTexto(texto: string): Dinheiro {
+    throw new Error(`Desafio do Capítulo 2 não resolvido: '${texto}'`);
+  }
+
   equivaleA(outro: Dinheiro): boolean {
     return this.#centavos === outro.#centavos;
   }
