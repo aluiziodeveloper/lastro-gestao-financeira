@@ -38,6 +38,30 @@ describe('Posicao.precoMedio', () => {
   });
   // #endregion
 
+  // #region pm-custos-operacionais-teste
+  it('inclui os custos das notas no preço médio', () => {
+    const posicao = extrair(
+      Posicao.abrir(
+        umaCompra({
+          quantidade: 200,
+          precoEmCentavos: 36_20n,
+          custosEmCentavos: 10_85n,
+        }),
+      ).comprar(
+        umaCompra({
+          quantidade: 100,
+          precoEmCentavos: 38_90n,
+          custosEmCentavos: 13_15n,
+        }),
+      ),
+    );
+
+    expect(posicao.precoMedio('meio-para-cima')).toEqual(
+      Dinheiro.deCentavos(37_18n),
+    );
+  });
+  // #endregion
+
   it('recusa a compra que leva a quantidade acima do limite', () => {
     const posicao = Posicao.abrir(
       umaCompra({

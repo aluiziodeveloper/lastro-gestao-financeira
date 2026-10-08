@@ -16,10 +16,15 @@ export class Posicao {
     this.#custoTotal = custoTotal;
   }
 
+  // #region posicao-custos-operacionais
+  // Os custos da nota entram no custo de aquisição (IN RFB 1.585/2015,
+  // art. 56, § 3º).
   static abrir(compra: Compra): Posicao {
     return new Posicao(
       compra.quantidade,
-      compra.precoUnitario.multiplicarPor(compra.quantidade),
+      compra.precoUnitario
+        .multiplicarPor(compra.quantidade)
+        .somar(compra.custos),
     );
   }
 
@@ -29,13 +34,14 @@ export class Posicao {
     if (!quantidade.ok) {
       return quantidade;
     }
-    const custo = compra.precoUnitario.multiplicarPor(
-      compra.quantidade,
-    );
+    const custo = compra.precoUnitario
+      .multiplicarPor(compra.quantidade)
+      .somar(compra.custos);
     return ok(
       new Posicao(quantidade.valor, this.#custoTotal.somar(custo)),
     );
   }
+  // #endregion
   // #endregion
 
   precoMedio(modo: ModoDeArredondamento): Dinheiro {
