@@ -1,4 +1,6 @@
+import type { DataDePregao } from './data-de-pregao.js';
 import type { Dinheiro } from './dinheiro.js';
+import type { IdDeOperacao } from './id-de-operacao.js';
 import type { Quantidade } from './quantidade.js';
 import type { Ticker } from './ticker.js';
 
@@ -6,8 +8,8 @@ import type { Ticker } from './ticker.js';
 // Compra e venda têm os mesmos campos; o tipo literal diz qual das duas
 // a operação é, e só esses dois valores existem.
 interface CamposDaOperacao {
-  readonly id: string;
-  readonly data: string;
+  readonly id: IdDeOperacao;
+  readonly data: DataDePregao;
   readonly ticker: Ticker;
   readonly quantidade: Quantidade;
   readonly precoUnitario: Dinheiro;
