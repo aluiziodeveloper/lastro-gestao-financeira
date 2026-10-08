@@ -43,6 +43,19 @@ describe('Quantidade', () => {
     );
   });
 
+  it('subtrai as unidades de outra quantidade', () => {
+    const trezentas = extrair(Quantidade.criar(300));
+    const setenta = extrair(Quantidade.criar(70));
+    expect(trezentas.subtrair(setenta)).toEqual(Quantidade.criar(230));
+  });
+
+  it('recusa a subtração que não deixa nenhuma unidade', () => {
+    const cem = extrair(Quantidade.criar(100));
+    expect(cem.subtrair(cem)).toEqual(
+      err({ tipo: 'quantidade-nao-positiva', unidades: 0 }),
+    );
+  });
+
   it('mostra as unidades na mensagem de falha', () => {
     expect(() => {
       expect(extrair(Quantidade.criar(100))).toEqual(

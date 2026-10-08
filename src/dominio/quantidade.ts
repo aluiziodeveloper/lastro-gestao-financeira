@@ -56,6 +56,13 @@ export class Quantidade implements ObjetoDeValor<Quantidade> {
   }
   // #endregion
 
+  // #region quantidade-subtrair
+  // A diferença só é quantidade se sobrar ao menos uma unidade.
+  subtrair(outra: Quantidade): Result<Quantidade, ErroDeQuantidade> {
+    return Quantidade.criar(this.#unidades - outra.#unidades);
+  }
+  // #endregion
+
   paraBigInt(): bigint {
     return BigInt(this.#unidades);
   }
