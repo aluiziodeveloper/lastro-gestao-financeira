@@ -5,6 +5,12 @@ import {
 import { inspecionar, type ObjetoDeValor } from './objeto-de-valor.js';
 import type { Quantidade } from './quantidade.js';
 
+// #region formato-da-nota
+// Como na nota de corretagem: milhar com ponto (opcional), centavos
+// com vírgula e duas casas (opcionais) e sinal de menos.
+const formatoDaNota = /^(-)?(\d{1,3}(?:\.\d{3})+|\d+)(?:,(\d{2}))?$/;
+// #endregion
+
 // #region dinheiro-classe
 export class Dinheiro implements ObjetoDeValor<Dinheiro> {
   readonly #centavos: bigint;
@@ -17,12 +23,18 @@ export class Dinheiro implements ObjetoDeValor<Dinheiro> {
     return new Dinheiro(centavos);
   }
 
-  // Desafio do Capítulo 2: converta o texto da nota de corretagem para
-  // centavos sem passar por number. Os testes estão em
-  // test/dominio/dinheiro.test.ts, na região dinheiro-de-texto-teste.
+  // #region dinheiro-de-texto
   static deTexto(texto: string): Dinheiro {
-    throw new Error(`Desafio do Capítulo 2 não resolvido: '${texto}'`);
+    const partes = formatoDaNota.exec(texto.trim());
+    if (partes === null) {
+      throw new Error(`Dinheiro fora do formato da nota: '${texto}'`);
+    }
+    const [, sinal, reais = '', centavos = '00'] = partes;
+    const valor =
+      BigInt(reais.replaceAll('.', '')) * 100n + BigInt(centavos);
+    return new Dinheiro(sinal === '-' ? -valor : valor);
   }
+  // #endregion
 
   equivaleA(outro: Dinheiro): boolean {
     return this.#centavos === outro.#centavos;
