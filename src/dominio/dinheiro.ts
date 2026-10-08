@@ -21,6 +21,16 @@ export class Dinheiro implements ObjetoDeValor<Dinheiro> {
     return this.#centavos === outro.#centavos;
   }
 
+  // #region dinheiro-sinal
+  ehPositivo(): boolean {
+    return this.#centavos > 0n;
+  }
+
+  ehNegativo(): boolean {
+    return this.#centavos < 0n;
+  }
+  // #endregion
+
   // #region dinheiro-inspecionar
   [inspecionar](): string {
     return `Dinheiro(${String(this.#centavos)} centavos)`;

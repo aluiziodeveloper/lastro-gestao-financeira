@@ -132,3 +132,18 @@ describe('Dinheiro: divisão longe do meio', () => {
     expect(terco).toEqual(Dinheiro.deCentavos(esperado));
   });
 });
+
+describe('Dinheiro: sinal', () => {
+  it.each([
+    ['R$ 0,01', 1n, true, false],
+    ['zero', 0n, false, false],
+    ['−R$ 0,01', -1n, false, true],
+  ])(
+    '%s: positivo %s, negativo %s',
+    (_valor, centavos, positivo, negativo) => {
+      const valor = Dinheiro.deCentavos(centavos);
+      expect(valor.ehPositivo()).toBe(positivo);
+      expect(valor.ehNegativo()).toBe(negativo);
+    },
+  );
+});
