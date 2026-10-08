@@ -63,5 +63,38 @@ export class Dinheiro implements ObjetoDeValor<Dinheiro> {
     );
   }
   // #endregion
+
+  // #region dinheiro-repartir
+  // Reparte o valor na proporção dos pesos, todos positivos. Cada parte
+  // começa no piso da proporção exata; os centavos que faltam para a
+  // soma vão, um a um, às partes de maior resto.
+  repartirNaProporcao(
+    pesos: readonly [Dinheiro, ...Dinheiro[]],
+  ): readonly Dinheiro[] {
+    const total = pesos.reduce(
+      (soma, peso) => soma + peso.#centavos,
+      0n,
+    );
+    const exatas = pesos.map((peso) => this.#centavos * peso.#centavos);
+    const pisos = exatas.map((exata) => exata / total);
+    const distribuido = pisos.reduce((soma, piso) => soma + piso, 0n);
+    const sobra = Number(this.#centavos - distribuido);
+    // O sort é estável: no empate de restos, vale a ordem dos pesos.
+    const porMaiorResto = exatas
+      .map((exata, indice) => ({ indice, resto: exata % total }))
+      .sort(
+        (um, outro) =>
+          Number(outro.resto > um.resto) -
+          Number(outro.resto < um.resto),
+      );
+    const recebemCentavo = new Set(
+      porMaiorResto.slice(0, sobra).map(({ indice }) => indice),
+    );
+    return pisos.map(
+      (piso, indice) =>
+        new Dinheiro(recebemCentavo.has(indice) ? piso + 1n : piso),
+    );
+  }
+  // #endregion
 }
 // #endregion
