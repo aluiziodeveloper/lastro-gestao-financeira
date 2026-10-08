@@ -1,10 +1,6 @@
 import { describe, it } from 'vitest';
 
 // #region especificacao-regras
-describe('R1 · preço médio · Capítulo 4', () => {
-  it.todo('pondera o preço médio nas compras, com custos operacionais');
-});
-
 describe('R2 · venda a descoberto · Capítulo 5', () => {
   it.todo('rejeita venda de quantidade maior que a posição');
 });
