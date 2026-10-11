@@ -1,0 +1,153 @@
+import { describe, expect, it } from 'vitest';
+
+import { Carteira } from '../../src/dominio/carteira.js';
+import { Dinheiro } from '../../src/dominio/dinheiro.js';
+import { criarIdDeCarteira } from '../../src/dominio/id-de-carteira.js';
+import type { Operacao } from '../../src/dominio/operacao.js';
+import { err } from '../../src/dominio/resultado.js';
+import { Ticker } from '../../src/dominio/ticker.js';
+import { extrair } from '../apoio/resultado.js';
+import { umaCompra } from './construtores.js';
+
+const vale3 = extrair(Ticker.criar('VALE3'));
+const petr4 = extrair(Ticker.criar('PETR4'));
+
+function carteiraVazia(id = 'carteira-1'): Carteira {
+  return Carteira.abrir(extrair(criarIdDeCarteira(id)));
+}
+
+describe('Carteira', () => {
+  describe('na identidade', () => {
+    it('continua a mesma carteira depois de um registro', () => {
+      const vazia = carteiraVazia();
+
+      const registrada = extrair(
+        vazia.registrar(
+          umaCompra({
+            ticker: 'VALE3',
+            quantidade: 300,
+            precoEmCentavos: 61_40n,
+          }),
+        ),
+      );
+
+      expect(registrada.mesmaCarteira(vazia)).toBe(true);
+    });
+
+    it('não é a mesma carteira que outra de outro identificador', () => {
+      expect(
+        carteiraVazia('carteira-1').mesmaCarteira(
+          carteiraVazia('carteira-2'),
+        ),
+      ).toBe(false);
+    });
+  });
+
+  describe('nas compras', () => {
+    it('começa sem quantidade de nenhum ativo', () => {
+      expect(carteiraVazia().quantidadeDe(vale3)).toBe(0n);
+    });
+
+    it('soma ao ativo a quantidade comprada', () => {
+      const carteira = extrair(
+        carteiraVazia().registrar(
+          umaCompra({
+            ticker: 'VALE3',
+            quantidade: 300,
+            precoEmCentavos: 61_40n,
+          }),
+        ),
+      );
+
+      expect(carteira.quantidadeDe(vale3)).toBe(300n);
+    });
+
+    it('calcula o preço médio de cada ativo', () => {
+      const carteira = extrair(
+        carteiraVazia().registrar(
+          umaCompra({
+            ticker: 'VALE3',
+            quantidade: 300,
+            precoEmCentavos: 61_40n,
+          }),
+        ),
+      );
+
+      expect(carteira.precoMedioDe(vale3, 'meio-para-cima')).toEqual(
+        Dinheiro.deCentavos(61_40n),
+      );
+    });
+
+    it('mantém uma posição separada para cada ativo', () => {
+      const carteira = extrair(
+        extrair(
+          carteiraVazia().registrar(
+            umaCompra({
+              ticker: 'VALE3',
+              quantidade: 300,
+              precoEmCentavos: 61_40n,
+            }),
+          ),
+        ).registrar(
+          umaCompra({
+            ticker: 'PETR4',
+            quantidade: 200,
+            precoEmCentavos: 36_20n,
+          }),
+        ),
+      );
+
+      expect(carteira.quantidadeDe(vale3)).toBe(300n);
+      expect(carteira.quantidadeDe(petr4)).toBe(200n);
+    });
+
+    it('recusa a compra que passa do limite de quantidade', () => {
+      const carteira = extrair(
+        carteiraVazia().registrar(
+          umaCompra({
+            quantidade: Number.MAX_SAFE_INTEGER,
+            precoEmCentavos: 1n,
+          }),
+        ),
+      );
+
+      expect(
+        carteira.registrar(
+          umaCompra({ quantidade: 1, precoEmCentavos: 1n }),
+        ),
+      ).toEqual(
+        err({
+          tipo: 'quantidade-acima-do-limite',
+          unidades: Number.MAX_SAFE_INTEGER + 1,
+        }),
+      );
+    });
+  });
+
+  // #region carteira-imutabilidade-teste
+  it('não muda a carteira que recebeu o registro', () => {
+    const vazia = carteiraVazia();
+
+    vazia.registrar(
+      umaCompra({
+        ticker: 'VALE3',
+        quantidade: 300,
+        precoEmCentavos: 61_40n,
+      }),
+    );
+
+    expect(vazia.quantidadeDe(vale3)).toBe(0n);
+  });
+  // #endregion
+
+  it('lança diante de um tipo que burlou o compilador', () => {
+    const intrusa = {
+      ...umaCompra({ quantidade: 1, precoEmCentavos: 1n }),
+      tipo: 'transferencia',
+    } as unknown as Operacao;
+
+    expect(() => carteiraVazia().registrar(intrusa)).toThrow(
+      'Caso não tratado',
+    );
+  });
+});

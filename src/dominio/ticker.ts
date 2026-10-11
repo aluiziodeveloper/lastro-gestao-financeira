@@ -34,6 +34,14 @@ export class Ticker implements ObjetoDeValor<Ticker> {
     return this.#codigo === outro.#codigo;
   }
 
+  // #region ticker-para-texto
+  // O código normalizado: serve de chave nas coleções indexadas pelo
+  // ativo.
+  paraTexto(): string {
+    return this.#codigo;
+  }
+  // #endregion
+
   [inspecionar](): string {
     return `Ticker(${this.#codigo})`;
   }

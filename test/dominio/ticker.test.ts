@@ -40,6 +40,10 @@ describe('Ticker', () => {
     );
   });
 
+  it('devolve o código normalizado como texto', () => {
+    expect(extrair(Ticker.criar(' vale3 ')).paraTexto()).toBe('VALE3');
+  });
+
   it('mostra o código na mensagem de falha', () => {
     expect(() => {
       expect(extrair(Ticker.criar('PETR4'))).toEqual(

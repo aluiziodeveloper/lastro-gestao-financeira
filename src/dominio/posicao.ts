@@ -101,6 +101,13 @@ export class Posicao {
   }
   // #endregion
 
+  // #region posicao-quantidade
+  // Consulta, como o preço médio: posição zerada tem quantidade zero.
+  quantidade(): bigint {
+    return this.#quantidade?.paraBigInt() ?? 0n;
+  }
+  // #endregion
+
   // #region posicao-preco-medio
   // Posição zerada não tem custo a dividir: o preço médio é zero.
   precoMedio(modo: ModoDeArredondamento): Dinheiro {
