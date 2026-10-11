@@ -1,6 +1,7 @@
 import type { ModoDeArredondamento } from './arredondamento.js';
 import type { Dinheiro } from './dinheiro.js';
 import type { ErroDeEvento, EventoCorporativo } from './eventos.js';
+import type { FracaoDeAcao } from './fracao-de-acao.js';
 import type { Compra, Venda } from './operacao.js';
 import { type ErroDePosicao, Posicao } from './posicao.js';
 import type { ErroDeQuantidade } from './quantidade.js';
@@ -13,13 +14,18 @@ import type { Ticker } from './ticker.js';
 // mudança devolve uma coleção nova.
 export class Posicoes {
   readonly #porAtivo: ReadonlyMap<string, Posicao>;
+  readonly #fracoes: ReadonlyMap<string, readonly FracaoDeAcao[]>;
 
-  private constructor(porAtivo: ReadonlyMap<string, Posicao>) {
+  private constructor(
+    porAtivo: ReadonlyMap<string, Posicao>,
+    fracoes: ReadonlyMap<string, readonly FracaoDeAcao[]>,
+  ) {
     this.#porAtivo = porAtivo;
+    this.#fracoes = fracoes;
   }
 
   static vazias(): Posicoes {
-    return new Posicoes(new Map());
+    return new Posicoes(new Map(), new Map());
   }
 
   comprar(compra: Compra): Result<Posicoes, ErroDeQuantidade> {
@@ -39,11 +45,25 @@ export class Posicoes {
   }
 
   aplicar(evento: EventoCorporativo): Result<Posicoes, ErroDeEvento> {
-    const posicao = evento.aplicarA(this.#posicaoDe(evento.ticker));
-    if (!posicao.ok) {
-      return posicao;
+    const aplicado = evento.aplicarA(this.#posicaoDe(evento.ticker));
+    if (!aplicado.ok) {
+      return aplicado;
     }
-    return ok(this.#com(evento.ticker, posicao.valor));
+    const { posicao, fracao } = aplicado.valor;
+    const comPosicao = this.#com(evento.ticker, posicao);
+    return ok(
+      fracao === undefined
+        ? comPosicao
+        : comPosicao.#comFracao(evento.ticker, fracao),
+    );
+  }
+
+  fracoesPendentesDe(ticker: Ticker): readonly FracaoDeAcao[] {
+    return this.#fracoes.get(ticker.paraTexto()) ?? [];
+  }
+
+  custoTotalDe(ticker: Ticker): Dinheiro {
+    return this.#posicaoDe(ticker).custoTotal();
   }
 
   quantidadeDe(ticker: Ticker): bigint {
@@ -62,7 +82,14 @@ export class Posicoes {
   #com(ticker: Ticker, posicao: Posicao): Posicoes {
     const porAtivo = new Map(this.#porAtivo);
     porAtivo.set(ticker.paraTexto(), posicao);
-    return new Posicoes(porAtivo);
+    return new Posicoes(porAtivo, this.#fracoes);
+  }
+
+  #comFracao(ticker: Ticker, fracao: FracaoDeAcao): Posicoes {
+    const fracoes = new Map(this.#fracoes);
+    const chave = ticker.paraTexto();
+    fracoes.set(chave, [...(fracoes.get(chave) ?? []), fracao]);
+    return new Posicoes(this.#porAtivo, fracoes);
   }
 }
 // #endregion

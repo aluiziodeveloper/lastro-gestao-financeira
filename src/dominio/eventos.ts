@@ -1,5 +1,6 @@
 import type { DataDePregao } from './data-de-pregao.js';
 import type { IdDeOperacao } from './id-de-operacao.js';
+import type { FracaoDeAcao } from './fracao-de-acao.js';
 import type { Posicao } from './posicao.js';
 import type { Proporcao } from './proporcao.js';
 import type { ErroDeQuantidade } from './quantidade.js';
@@ -13,7 +14,13 @@ export interface EventoCorporativo {
   readonly id: IdDeOperacao;
   readonly data: DataDePregao;
   readonly ticker: Ticker;
-  aplicarA(posicao: Posicao): Result<Posicao, ErroDeEvento>;
+  aplicarA(posicao: Posicao): Result<EventoAplicado, ErroDeEvento>;
+}
+
+// A posição depois do evento e a fração de ação que sobrou, se houver.
+export interface EventoAplicado {
+  readonly posicao: Posicao;
+  readonly fracao: FracaoDeAcao | undefined;
 }
 
 export interface CamposDoEvento {

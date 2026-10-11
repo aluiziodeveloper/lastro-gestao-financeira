@@ -8,6 +8,7 @@ import {
   criarDesdobramento,
   criarGrupamento,
 } from '../../src/dominio/eventos.js';
+import { FracaoDeAcao } from '../../src/dominio/fracao-de-acao.js';
 import { criarIdDeCarteira } from '../../src/dominio/id-de-carteira.js';
 import { criarIdDeOperacao } from '../../src/dominio/id-de-operacao.js';
 import { Proporcao } from '../../src/dominio/proporcao.js';
@@ -164,6 +165,36 @@ describe('R3 · custo total conservado', () => {
     expect(carteira.precoMedioDe(vale3, 'meio-para-cima')).toEqual(
       Dinheiro.deCentavos(614_00n),
     );
+  });
+});
+// #endregion
+
+// #region eventos-fracoes
+// O caso da cena e o contraexemplo que a propriedade encontrou.
+describe('R3 · frações de ação', () => {
+  it('deixa 1 ação e meia ação pendente de 15 em 10:1', () => {
+    const carteira = extrair(
+      carteiraCom(15).aplicar(criarGrupamento(evento(10, 1))),
+    );
+
+    expect(carteira.quantidadeDe(vale3)).toBe(1n);
+    expect(carteira.custoTotalDe(vale3)).toEqual(
+      Dinheiro.deCentavos(614_00n),
+    );
+    expect(carteira.fracoesPendentesDe(vale3)).toEqual([
+      FracaoDeAcao.de(5n, 10n, Dinheiro.deCentavos(307_00n)),
+    ]);
+  });
+
+  it('zera a posição menor que o grupamento e guarda a fração', () => {
+    const carteira = extrair(
+      carteiraCom(1).aplicar(criarGrupamento(evento(2, 1))),
+    );
+
+    expect(carteira.quantidadeDe(vale3)).toBe(0n);
+    expect(carteira.fracoesPendentesDe(vale3)).toEqual([
+      FracaoDeAcao.de(1n, 2n, Dinheiro.deCentavos(61_40n)),
+    ]);
   });
 });
 // #endregion

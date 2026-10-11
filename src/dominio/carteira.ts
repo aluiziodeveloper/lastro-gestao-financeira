@@ -2,6 +2,7 @@ import type { ModoDeArredondamento } from './arredondamento.js';
 import type { Dinheiro } from './dinheiro.js';
 import type { ErroDeCarteira } from './erros.js';
 import type { EventoCorporativo } from './eventos.js';
+import type { FracaoDeAcao } from './fracao-de-acao.js';
 import { garantirExaustividade } from './exaustividade.js';
 import type { IdDeCarteira } from './id-de-carteira.js';
 import type { Compra, Operacao, Venda } from './operacao.js';
@@ -97,6 +98,14 @@ export class Carteira {
     return ok(this.#com(venda, posicoes.valor));
   }
   // #endregion
+
+  fracoesPendentesDe(ticker: Ticker): readonly FracaoDeAcao[] {
+    return this.#posicoes.fracoesPendentesDe(ticker);
+  }
+
+  custoTotalDe(ticker: Ticker): Dinheiro {
+    return this.#posicoes.custoTotalDe(ticker);
+  }
 
   quantidadeDe(ticker: Ticker): bigint {
     return this.#posicoes.quantidadeDe(ticker);

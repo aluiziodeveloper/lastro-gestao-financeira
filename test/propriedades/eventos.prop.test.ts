@@ -28,16 +28,38 @@ const umaPosicao = fc.integer({ min: 1, max: 1_000 });
 describe('R3 · propriedades dos eventos', () => {
   // #region prop-quantidade-conservada
   // Antes e depois do evento, a carteira tem a mesma fatia da empresa:
-  // quantidade × para = quantidade nova × de. Marcada com it.fails até
-  // a correção das frações: hoje a propriedade falha, e a suíte sabe.
-  it.fails('não faz sumir nenhuma ação', () => {
+  // quantidade × para = ações novas × de + o que sobrou em fração.
+  it('não faz sumir nenhuma ação', () => {
     fc.assert(
       fc.property(umaPosicao, termosDeEvento, (quantidade, termos) => {
         const evento = eventoCom(vale3, termos);
         const depois = extrair(carteiraCom(quantidade).aplicar(evento));
-        expect(depois.quantidadeDe(vale3) * BigInt(termos.de)).toBe(
-          BigInt(quantidade) * BigInt(termos.para),
-        );
+        const sobra = depois
+          .fracoesPendentesDe(vale3)
+          .reduce((soma, fracao) => soma + fracao.numerador(), 0n);
+        expect(
+          depois.quantidadeDe(vale3) * BigInt(termos.de) + sobra,
+        ).toBe(BigInt(quantidade) * BigInt(termos.para));
+      }),
+    );
+  });
+  // #endregion
+
+  // #region prop-custo-conservado
+  // O evento não compra nem vende: o custo das ações que ficam e o das
+  // frações somam o custo de antes.
+  it('conserva o custo total, somando o das frações', () => {
+    fc.assert(
+      fc.property(umaPosicao, termosDeEvento, (quantidade, termos) => {
+        const antes = carteiraCom(quantidade);
+        const depois = extrair(antes.aplicar(eventoCom(vale3, termos)));
+        const total = depois
+          .fracoesPendentesDe(vale3)
+          .reduce(
+            (soma, fracao) => soma.somar(fracao.custo()),
+            depois.custoTotalDe(vale3),
+          );
+        expect(total).toEqual(antes.custoTotalDe(vale3));
       }),
     );
   });

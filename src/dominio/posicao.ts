@@ -5,6 +5,7 @@ import {
   custoDeAquisicao,
   type Venda,
 } from './operacao.js';
+import type { EventoAplicado } from './eventos.js';
 import type { Proporcao } from './proporcao.js';
 import type { ErroDeQuantidade, Quantidade } from './quantidade.js';
 import { err, ok, type Result } from './resultado.js';
@@ -97,21 +98,30 @@ export class Posicao {
   // #endregion
 
   // #region posicao-aplicar-fator
-  // Desdobramento e grupamento mudam a quantidade e conservam o custo
-  // total: o preço médio muda na proporção inversa.
+  // O evento troca a quantidade e reparte o custo: as ações inteiras
+  // ficam com a parte delas, e a fração que sobra leva o resto.
   aplicarProporcao(
     proporcao: Proporcao,
-  ): Result<Posicao, ErroDeQuantidade> {
+  ): Result<EventoAplicado, ErroDeQuantidade> {
     if (this.#quantidade === undefined) {
-      return ok(this);
+      return ok({ posicao: this, fracao: undefined });
     }
-    const quantidade = proporcao.aplicadaA(this.#quantidade);
-    if (!quantidade.ok) {
-      return quantidade;
+    const repartida = proporcao.aplicadaA(
+      this.#quantidade,
+      this.#custoTotal,
+    );
+    if (!repartida.ok) {
+      return repartida;
     }
-    return ok(new Posicao(quantidade.valor, this.#custoTotal));
+    const { quantidade, custo, fracao } = repartida.valor;
+    return ok({ posicao: new Posicao(quantidade, custo), fracao });
   }
   // #endregion
+
+  // Consulta, como o preço médio: devolve um valor que não muda.
+  custoTotal(): Dinheiro {
+    return this.#custoTotal;
+  }
 
   // #region posicao-quantidade
   // Consulta, como o preço médio: posição zerada tem quantidade zero.
