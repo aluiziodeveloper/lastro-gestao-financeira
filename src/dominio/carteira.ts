@@ -5,7 +5,6 @@ import type { ErroDeCarteira } from './erros.js';
 import { garantirExaustividade } from './exaustividade.js';
 import type { IdDeCarteira } from './id-de-carteira.js';
 import type { Operacao } from './operacao.js';
-import type { Posicao } from './posicao.js';
 import { Posicoes } from './posicoes.js';
 import { err, ok, type Result } from './resultado.js';
 import type { Ticker } from './ticker.js';
@@ -51,26 +50,25 @@ export class Carteira {
       });
     }
     // #endregion
-    const posicao = this.#posicoes.posicaoDe(operacao.ticker);
     switch (operacao.tipo) {
       case 'compra': {
-        const comprada = posicao.comprar(operacao);
-        if (!comprada.ok) {
-          return comprada;
+        const posicoes = this.#posicoes.comprar(operacao);
+        if (!posicoes.ok) {
+          return posicoes;
         }
-        return ok(this.#com(operacao, comprada.valor));
+        return ok(this.#com(operacao, posicoes.valor));
       }
       case 'venda': {
-        const vendida = posicao.vender(operacao);
-        if (!vendida.ok) {
+        const posicoes = this.#posicoes.vender(operacao);
+        if (!posicoes.ok) {
           return err({
             tipo: 'venda-a-descoberto',
             ticker: operacao.ticker,
-            emCarteira: vendida.erro.emCarteira,
-            vendida: vendida.erro.vendida,
+            emCarteira: posicoes.erro.emCarteira,
+            vendida: posicoes.erro.vendida,
           });
         }
-        return ok(this.#com(operacao, vendida.valor));
+        return ok(this.#com(operacao, posicoes.valor));
       }
       default:
         return garantirExaustividade(operacao);
@@ -79,20 +77,16 @@ export class Carteira {
   // #endregion
 
   quantidadeDe(ticker: Ticker): bigint {
-    return this.#posicoes.posicaoDe(ticker).quantidade();
+    return this.#posicoes.quantidadeDe(ticker);
   }
 
   precoMedioDe(ticker: Ticker, modo: ModoDeArredondamento): Dinheiro {
-    return this.#posicoes.posicaoDe(ticker).precoMedio(modo);
+    return this.#posicoes.precoMedioDe(ticker, modo);
   }
 
-  // A operação registrada traz o ativo e a nova última data.
-  #com(operacao: Operacao, posicao: Posicao): Carteira {
-    return new Carteira(
-      this.#id,
-      this.#posicoes.com(operacao.ticker, posicao),
-      operacao.data,
-    );
+  // A operação registrada traz a nova última data.
+  #com(operacao: Operacao, posicoes: Posicoes): Carteira {
+    return new Carteira(this.#id, posicoes, operacao.data);
   }
 }
 // #endregion
