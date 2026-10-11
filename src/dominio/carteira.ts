@@ -92,15 +92,24 @@ export class Carteira {
   // #endregion
 
   // #region carteira-registrar-todas
-  // Desafio do Capítulo 5: registre o lote inteiro ou nenhuma
-  // operação. Se uma operação violar uma invariante, a carteira fica
-  // como estava, e o erro aponta a primeira que falhou. Os testes
-  // estão em test/dominio/carteira-lote.test.ts.
+  // O lote entra inteiro ou não entra. Como a carteira é imutável, cada
+  // registro produz uma carteira nova, e quem chamou só a recebe se
+  // todas as operações passarem; o erro aponta a primeira que falhou.
   registrarTodas(
     operacoes: readonly Operacao[],
   ): Result<Carteira, ErroDeLote> {
-    throw new Error(
-      `Desafio do Capítulo 5 não resolvido (operações: ${String(operacoes.length)})`,
+    return operacoes.reduce<Result<Carteira, ErroDeLote>>(
+      (lote, operacao) => {
+        if (!lote.ok) {
+          return lote;
+        }
+        const registrada = lote.valor.registrar(operacao);
+        if (!registrada.ok) {
+          return err({ operacao: operacao.id, erro: registrada.erro });
+        }
+        return registrada;
+      },
+      ok(this),
     );
   }
   // #endregion
