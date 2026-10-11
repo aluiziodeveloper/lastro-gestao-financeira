@@ -20,30 +20,26 @@ function reais(centavos: bigint): string {
 }
 
 // #region relatorio-de-posicoes
+// A classe do ETF sai como está no cadastro: os testes de
+// caracterização fixam esse comportamento, e mudá-lo é outro commit.
+const nomeDaClasse = { acao: 'ação', fii: 'FII', etf: 'etf' } as const;
+
+function linha({
+  ativo: { ticker, classe },
+  quantidade,
+  custoTotalEmCentavos,
+}: PosicaoNoRelatorio): string {
+  const medio = custoTotalEmCentavos / BigInt(quantidade);
+  const nome = nomeDaClasse[classe];
+  const ativo = `${ticker.toUpperCase()} · ${nome}`;
+  return `${ativo} · ${String(quantidade)} × ${reais(medio)}`;
+}
+
 export function linhasDoRelatorio(
   posicoes: readonly PosicaoNoRelatorio[],
 ): string[] {
-  const linhas: string[] = [];
-  for (const posicao of posicoes) {
-    if (posicao.quantidade > 0) {
-      let classe: string;
-      if (posicao.ativo.classe === 'acao') {
-        classe = 'ação';
-      } else {
-        if (posicao.ativo.classe === 'fii') {
-          classe = 'FII';
-        } else {
-          classe = posicao.ativo.classe;
-        }
-      }
-      const medio =
-        posicao.custoTotalEmCentavos / BigInt(posicao.quantidade);
-      linhas.push(
-        `${posicao.ativo.ticker.toUpperCase()} · ${classe} · ` +
-          `${String(posicao.quantidade)} × ${reais(medio)}`,
-      );
-    }
-  }
-  return linhas;
+  return posicoes
+    .filter((posicao) => posicao.quantidade > 0)
+    .map(linha);
 }
 // #endregion
