@@ -2,12 +2,18 @@ import type { ModoDeArredondamento } from './arredondamento.js';
 import type { DataDePregao } from './data-de-pregao.js';
 import type { Dinheiro } from './dinheiro.js';
 import type { ErroDeCarteira } from './erros.js';
+import type { EventoCorporativo } from './eventos.js';
 import { garantirExaustividade } from './exaustividade.js';
 import type { IdDeCarteira } from './id-de-carteira.js';
 import type { Operacao, Venda } from './operacao.js';
 import { Posicoes } from './posicoes.js';
 import { err, ok, type Result } from './resultado.js';
 import type { Ticker } from './ticker.js';
+
+// Operações e eventos têm data de pregão; a ordem vale para os dois.
+interface Datado {
+  readonly data: DataDePregao;
+}
 
 // #region carteira-classe
 // A carteira é uma entidade: o identificador continua o mesmo enquanto
@@ -58,10 +64,25 @@ export class Carteira {
   }
   // #endregion
 
+  // #region carteira-aplicar-evento
+  // O evento corporativo também entra em ordem cronológica.
+  aplicar(evento: EventoCorporativo): Result<Carteira, ErroDeCarteira> {
+    const foraDeOrdem = this.#foraDeOrdem(evento);
+    if (foraDeOrdem !== undefined) {
+      return err(foraDeOrdem);
+    }
+    const posicoes = this.#posicoes.aplicar(evento);
+    if (!posicoes.ok) {
+      return posicoes;
+    }
+    return ok(this.#com(evento, posicoes.valor));
+  }
+  // #endregion
+
   // #region carteira-ordem-cronologica
   // Operações do mesmo pregão entram em qualquer ordem; uma data
   // anterior à última registrada, em qualquer ativo, é recusada.
-  #foraDeOrdem(operacao: Operacao): ErroDeCarteira | undefined {
+  #foraDeOrdem(operacao: Datado): ErroDeCarteira | undefined {
     const ultimaData = this.#ultimaData;
     if (ultimaData !== undefined && operacao.data < ultimaData) {
       return {
@@ -100,7 +121,7 @@ export class Carteira {
   }
 
   // A operação registrada traz a nova última data.
-  #com(operacao: Operacao, posicoes: Posicoes): Carteira {
+  #com(operacao: Datado, posicoes: Posicoes): Carteira {
     return new Carteira(this.#id, posicoes, operacao.data);
   }
 }

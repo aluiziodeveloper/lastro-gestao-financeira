@@ -1,10 +1,6 @@
 import { describe, it } from 'vitest';
 
 // #region especificacao-regras
-describe('R3 · desdobramento e grupamento · Capítulo 6', () => {
-  it.todo('conserva o custo total em desdobramentos e grupamentos');
-});
-
 describe('R4 · ações em operação comum · Capítulo 9', () => {
   it.todo('isenta as vendas do mês que somam até R$ 20.000,00');
 });

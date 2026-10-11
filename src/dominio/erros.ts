@@ -1,5 +1,6 @@
 import type { DataDePregao } from './data-de-pregao.js';
 import type { Dinheiro } from './dinheiro.js';
+import type { ErroDeEvento } from './eventos.js';
 import type { ErroDeQuantidade, Quantidade } from './quantidade.js';
 import type { Ticker } from './ticker.js';
 
@@ -28,5 +29,6 @@ export type ErroDeCarteira =
       readonly data: DataDePregao;
       readonly ultimaData: DataDePregao;
     }
+  | ErroDeEvento
   | ErroDeQuantidade;
 // #endregion
