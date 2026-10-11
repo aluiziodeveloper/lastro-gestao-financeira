@@ -65,6 +65,18 @@ export default defineConfig(
     },
   },
   // #endregion
+  // #region calisthenics-forma
+  // Regras 1 e 2 de Calisthenics: um nível de indentação por função e
+  // nada de else depois de return. Valem só para src/, como as de
+  // tamanho.
+  {
+    files: ['src/**/*.ts'],
+    rules: {
+      'max-depth': ['error', 1],
+      'no-else-return': ['error', { allowElseIf: false }],
+    },
+  },
+  // #endregion
   {
     files: ['**/*.js'],
     extends: [tseslint.configs.disableTypeChecked],
