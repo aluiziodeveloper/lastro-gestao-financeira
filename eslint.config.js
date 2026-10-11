@@ -48,6 +48,23 @@ export default defineConfig(
     },
   },
   // #endregion
+  // #region calisthenics-tamanho
+  // Regra 7 de Calisthenics: entidades pequenas. Os limites são os do
+  // Lastro, e não os de Bay; linhas em branco e comentários não contam.
+  {
+    files: ['src/**/*.ts'],
+    rules: {
+      'max-lines': [
+        'error',
+        { max: 100, skipBlankLines: true, skipComments: true },
+      ],
+      'max-lines-per-function': [
+        'error',
+        { max: 25, skipBlankLines: true, skipComments: true },
+      ],
+    },
+  },
+  // #endregion
   {
     files: ['**/*.js'],
     extends: [tseslint.configs.disableTypeChecked],
