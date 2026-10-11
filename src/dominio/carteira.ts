@@ -1,11 +1,11 @@
 import type { ModoDeArredondamento } from './arredondamento.js';
 import type { Dinheiro } from './dinheiro.js';
+import type { ErroDeCarteira } from './erros.js';
 import { garantirExaustividade } from './exaustividade.js';
 import type { IdDeCarteira } from './id-de-carteira.js';
 import type { Operacao } from './operacao.js';
 import { Posicao } from './posicao.js';
-import type { ErroDeQuantidade } from './quantidade.js';
-import { ok, type Result } from './resultado.js';
+import { err, ok, type Result } from './resultado.js';
 import type { Ticker } from './ticker.js';
 
 // #region carteira-classe
@@ -33,7 +33,7 @@ export class Carteira {
   }
 
   // #region carteira-registrar
-  registrar(operacao: Operacao): Result<Carteira, ErroDeQuantidade> {
+  registrar(operacao: Operacao): Result<Carteira, ErroDeCarteira> {
     const chave = operacao.ticker.paraTexto();
     const posicao = this.#posicoes.get(chave) ?? Posicao.zerada();
     switch (operacao.tipo) {
@@ -44,9 +44,18 @@ export class Carteira {
         }
         return ok(this.#com(chave, comprada.valor));
       }
-      case 'venda':
-        // A venda ainda não muda a carteira.
-        return ok(this);
+      case 'venda': {
+        const vendida = posicao.vender(operacao);
+        if (!vendida.ok) {
+          return err({
+            tipo: 'venda-a-descoberto',
+            ticker: operacao.ticker,
+            emCarteira: vendida.erro.emCarteira,
+            vendida: vendida.erro.vendida,
+          });
+        }
+        return ok(this.#com(chave, vendida.valor));
+      }
       default:
         return garantirExaustividade(operacao);
     }

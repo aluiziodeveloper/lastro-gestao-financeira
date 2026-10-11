@@ -4,16 +4,29 @@ import { Carteira } from '../../src/dominio/carteira.js';
 import { Dinheiro } from '../../src/dominio/dinheiro.js';
 import { criarIdDeCarteira } from '../../src/dominio/id-de-carteira.js';
 import type { Operacao } from '../../src/dominio/operacao.js';
+import { Quantidade } from '../../src/dominio/quantidade.js';
 import { err } from '../../src/dominio/resultado.js';
 import { Ticker } from '../../src/dominio/ticker.js';
 import { extrair } from '../apoio/resultado.js';
-import { umaCompra } from './construtores.js';
+import { umaCompra, umaVenda } from './construtores.js';
 
 const vale3 = extrair(Ticker.criar('VALE3'));
 const petr4 = extrair(Ticker.criar('PETR4'));
 
 function carteiraVazia(id = 'carteira-1'): Carteira {
   return Carteira.abrir(extrair(criarIdDeCarteira(id)));
+}
+
+function comTrezentasVale3(): Carteira {
+  return extrair(
+    carteiraVazia().registrar(
+      umaCompra({
+        ticker: 'VALE3',
+        quantidade: 300,
+        precoEmCentavos: 61_40n,
+      }),
+    ),
+  );
 }
 
 describe('Carteira', () => {
@@ -121,6 +134,72 @@ describe('Carteira', () => {
           unidades: Number.MAX_SAFE_INTEGER + 1,
         }),
       );
+    });
+  });
+
+  describe('nas vendas', () => {
+    // #region carteira-descoberto-teste
+    it('recusa a venda de um ativo sem posição', () => {
+      const venda = umaVenda({
+        ticker: 'VALE3',
+        quantidade: 300,
+        precoEmCentavos: 63_00n,
+      });
+
+      expect(carteiraVazia().registrar(venda)).toEqual(
+        err({
+          tipo: 'venda-a-descoberto',
+          ticker: vale3,
+          emCarteira: undefined,
+          vendida: venda.quantidade,
+        }),
+      );
+    });
+    // #endregion
+
+    it('recusa a venda acima da quantidade em carteira', () => {
+      const venda = umaVenda({
+        ticker: 'VALE3',
+        quantidade: 301,
+        precoEmCentavos: 63_00n,
+      });
+
+      expect(comTrezentasVale3().registrar(venda)).toEqual(
+        err({
+          tipo: 'venda-a-descoberto',
+          ticker: vale3,
+          emCarteira: extrair(Quantidade.criar(300)),
+          vendida: venda.quantidade,
+        }),
+      );
+    });
+
+    it('baixa do ativo a quantidade vendida', () => {
+      const carteira = extrair(
+        comTrezentasVale3().registrar(
+          umaVenda({
+            ticker: 'VALE3',
+            quantidade: 100,
+            precoEmCentavos: 63_00n,
+          }),
+        ),
+      );
+
+      expect(carteira.quantidadeDe(vale3)).toBe(200n);
+    });
+
+    it('zera o ativo quando a venda leva toda a posição', () => {
+      const carteira = extrair(
+        comTrezentasVale3().registrar(
+          umaVenda({
+            ticker: 'VALE3',
+            quantidade: 300,
+            precoEmCentavos: 63_00n,
+          }),
+        ),
+      );
+
+      expect(carteira.quantidadeDe(vale3)).toBe(0n);
     });
   });
 

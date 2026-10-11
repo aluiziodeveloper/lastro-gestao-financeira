@@ -1,10 +1,6 @@
 import { describe, it } from 'vitest';
 
 // #region especificacao-regras
-describe('R2 · venda a descoberto · Capítulo 5', () => {
-  it.todo('rejeita venda de quantidade maior que a posição');
-});
-
 describe('R3 · desdobramento e grupamento · Capítulo 6', () => {
   it.todo('conserva o custo total em desdobramentos e grupamentos');
 });
