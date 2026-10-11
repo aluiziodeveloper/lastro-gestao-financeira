@@ -1,6 +1,14 @@
 import type { Dinheiro } from './dinheiro.js';
 import { inspecionar, type ObjetoDeValor } from './objeto-de-valor.js';
 
+// #region maximo-divisor-comum
+// Algoritmo de Euclides: o resto da divisão troca de lugar com o
+// divisor até zerar. Os dois números são positivos aqui.
+function maximoDivisorComum(a: bigint, b: bigint): bigint {
+  return b === 0n ? a : maximoDivisorComum(b, a % b);
+}
+// #endregion
+
 // #region fracao-de-acao
 // O que sobra de um evento que não divide a posição em ações inteiras:
 // a fração de uma ação nova e o custo que ela leva. A companhia agrupa
@@ -37,12 +45,19 @@ export class FracaoDeAcao implements ObjetoDeValor<FracaoDeAcao> {
   }
 
   // #region fracao-somar
-  // Desafio do Capítulo 7: junte duas frações do mesmo ativo, pendentes
-  // de leilão, com denominadores que podem ser diferentes. As
-  // propriedades estão em test/propriedades/fracao.prop.test.ts.
+  // Duas frações do mesmo ativo, pendentes do mesmo leilão, viram uma:
+  // denominador comum, custos somados e o resultado simplificado, para
+  // que o denominador não cresça a cada soma.
   somar(outra: FracaoDeAcao): FracaoDeAcao {
-    throw new Error(
-      `Desafio do Capítulo 7 não resolvido (${String(outra.#numerador)})`,
+    const numerador =
+      this.#numerador * outra.#denominador +
+      outra.#numerador * this.#denominador;
+    const denominador = this.#denominador * outra.#denominador;
+    const divisor = maximoDivisorComum(numerador, denominador);
+    return new FracaoDeAcao(
+      numerador / divisor,
+      denominador / divisor,
+      this.#custo.somar(outra.#custo),
     );
   }
   // #endregion
