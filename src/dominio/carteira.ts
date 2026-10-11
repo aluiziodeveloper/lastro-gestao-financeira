@@ -4,7 +4,7 @@ import type { Dinheiro } from './dinheiro.js';
 import type { ErroDeCarteira } from './erros.js';
 import { garantirExaustividade } from './exaustividade.js';
 import type { IdDeCarteira } from './id-de-carteira.js';
-import type { Operacao } from './operacao.js';
+import type { Operacao, Venda } from './operacao.js';
 import { Posicoes } from './posicoes.js';
 import { err, ok, type Result } from './resultado.js';
 import type { Ticker } from './ticker.js';
@@ -38,18 +38,10 @@ export class Carteira {
 
   // #region carteira-registrar
   registrar(operacao: Operacao): Result<Carteira, ErroDeCarteira> {
-    // #region carteira-ordem-cronologica
-    // Operações do mesmo pregão entram em qualquer ordem; uma data
-    // anterior à última registrada, em qualquer ativo, é recusada.
-    const ultimaData = this.#ultimaData;
-    if (ultimaData !== undefined && operacao.data < ultimaData) {
-      return err({
-        tipo: 'operacao-fora-de-ordem',
-        data: operacao.data,
-        ultimaData,
-      });
+    const foraDeOrdem = this.#foraDeOrdem(operacao);
+    if (foraDeOrdem !== undefined) {
+      return err(foraDeOrdem);
     }
-    // #endregion
     switch (operacao.tipo) {
       case 'compra': {
         const posicoes = this.#posicoes.comprar(operacao);
@@ -58,21 +50,44 @@ export class Carteira {
         }
         return ok(this.#com(operacao, posicoes.valor));
       }
-      case 'venda': {
-        const posicoes = this.#posicoes.vender(operacao);
-        if (!posicoes.ok) {
-          return err({
-            tipo: 'venda-a-descoberto',
-            ticker: operacao.ticker,
-            emCarteira: posicoes.erro.emCarteira,
-            vendida: posicoes.erro.vendida,
-          });
-        }
-        return ok(this.#com(operacao, posicoes.valor));
-      }
+      case 'venda':
+        return this.#vender(operacao);
       default:
         return garantirExaustividade(operacao);
     }
+  }
+  // #endregion
+
+  // #region carteira-ordem-cronologica
+  // Operações do mesmo pregão entram em qualquer ordem; uma data
+  // anterior à última registrada, em qualquer ativo, é recusada.
+  #foraDeOrdem(operacao: Operacao): ErroDeCarteira | undefined {
+    const ultimaData = this.#ultimaData;
+    if (ultimaData !== undefined && operacao.data < ultimaData) {
+      return {
+        tipo: 'operacao-fora-de-ordem',
+        data: operacao.data,
+        ultimaData,
+      };
+    }
+    return undefined;
+  }
+  // #endregion
+
+  // #region carteira-vender
+  // A posição só sabe que a venda passou da quantidade; a carteira
+  // diz o ativo e dá ao erro o nome da regra.
+  #vender(venda: Venda): Result<Carteira, ErroDeCarteira> {
+    const posicoes = this.#posicoes.vender(venda);
+    if (!posicoes.ok) {
+      return err({
+        tipo: 'venda-a-descoberto',
+        ticker: venda.ticker,
+        emCarteira: posicoes.erro.emCarteira,
+        vendida: posicoes.erro.vendida,
+      });
+    }
+    return ok(this.#com(venda, posicoes.valor));
   }
   // #endregion
 
