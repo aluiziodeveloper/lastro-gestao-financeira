@@ -7,46 +7,69 @@ import { err, type Result } from './resultado.js';
 import type { Ticker } from './ticker.js';
 
 // #region evento-corporativo
+// Cada evento sabe se aplicar a uma posição. Um tipo novo de evento
+// entra com uma fábrica nova, sem mudar quem aplica os eventos.
 export interface EventoCorporativo {
-  readonly tipo: 'desdobramento' | 'grupamento';
+  readonly id: IdDeOperacao;
+  readonly data: DataDePregao;
+  readonly ticker: Ticker;
+  aplicarA(posicao: Posicao): Result<Posicao, ErroDeEvento>;
+}
+
+export interface CamposDoEvento {
   readonly id: IdDeOperacao;
   readonly data: DataDePregao;
   readonly ticker: Ticker;
   readonly proporcao: Proporcao;
 }
 
-export type CamposDoEvento = Omit<EventoCorporativo, 'tipo'>;
-
 export type ErroDeEvento =
   | { readonly tipo: 'proporcao-invalida'; readonly evento: string }
   | ErroDeQuantidade;
+// #endregion
 
+// #region evento-desdobramento
 export function criarDesdobramento(
   campos: CamposDoEvento,
 ): EventoCorporativo {
-  return { ...campos, tipo: 'desdobramento' };
-}
-
-export function criarGrupamento(
-  campos: CamposDoEvento,
-): EventoCorporativo {
-  return { ...campos, tipo: 'grupamento' };
+  const { id, data, ticker, proporcao } = campos;
+  return {
+    id,
+    data,
+    ticker,
+    aplicarA(posicao) {
+      const para = proporcao.para().paraBigInt();
+      if (para <= proporcao.de().paraBigInt()) {
+        return err({
+          tipo: 'proporcao-invalida',
+          evento: 'desdobramento',
+        });
+      }
+      return posicao.aplicarProporcao(proporcao);
+    },
+  };
 }
 // #endregion
 
-// #region processar-evento-guardas
-export function processarEvento(
-  posicao: Posicao,
-  evento: EventoCorporativo,
-): Result<Posicao, ErroDeEvento> {
-  const para = evento.proporcao.para().paraBigInt();
-  const de = evento.proporcao.de().paraBigInt();
-  if (evento.tipo === 'desdobramento' && para <= de) {
-    return err({ tipo: 'proporcao-invalida', evento: evento.tipo });
-  }
-  if (evento.tipo === 'grupamento' && de <= para) {
-    return err({ tipo: 'proporcao-invalida', evento: evento.tipo });
-  }
-  return posicao.aplicarProporcao(evento.proporcao);
+// #region evento-grupamento
+export function criarGrupamento(
+  campos: CamposDoEvento,
+): EventoCorporativo {
+  const { id, data, ticker, proporcao } = campos;
+  return {
+    id,
+    data,
+    ticker,
+    aplicarA(posicao) {
+      const de = proporcao.de().paraBigInt();
+      if (de <= proporcao.para().paraBigInt()) {
+        return err({
+          tipo: 'proporcao-invalida',
+          evento: 'grupamento',
+        });
+      }
+      return posicao.aplicarProporcao(proporcao);
+    },
+  };
 }
 // #endregion

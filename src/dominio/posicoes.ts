@@ -1,10 +1,6 @@
 import type { ModoDeArredondamento } from './arredondamento.js';
 import type { Dinheiro } from './dinheiro.js';
-import {
-  type ErroDeEvento,
-  type EventoCorporativo,
-  processarEvento,
-} from './eventos.js';
+import type { ErroDeEvento, EventoCorporativo } from './eventos.js';
 import type { Compra, Venda } from './operacao.js';
 import { type ErroDePosicao, Posicao } from './posicao.js';
 import type { ErroDeQuantidade } from './quantidade.js';
@@ -43,10 +39,7 @@ export class Posicoes {
   }
 
   aplicar(evento: EventoCorporativo): Result<Posicoes, ErroDeEvento> {
-    const posicao = processarEvento(
-      this.#posicaoDe(evento.ticker),
-      evento,
-    );
+    const posicao = evento.aplicarA(this.#posicaoDe(evento.ticker));
     if (!posicao.ok) {
       return posicao;
     }
