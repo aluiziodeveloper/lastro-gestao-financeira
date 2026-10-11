@@ -16,6 +16,7 @@ import { extrair } from '../apoio/resultado.js';
 // O teste diz só o que importa para o caso; o resto ganha um valor
 // válido e neutro: PETR4, um pregão qualquer e custos zerados.
 export interface Cenario {
+  readonly id?: string;
   readonly ticker?: string;
   readonly data?: string;
   readonly quantidade: number;
@@ -25,7 +26,7 @@ export interface Cenario {
 
 function campos(cenario: Cenario): CamposDaOperacao {
   return {
-    id: extrair(criarIdDeOperacao('op-001')),
+    id: extrair(criarIdDeOperacao(cenario.id ?? 'op-001')),
     data: extrair(criarDataDePregao(cenario.data ?? '2026-03-02')),
     ticker: extrair(Ticker.criar(cenario.ticker ?? 'PETR4')),
     quantidade: extrair(Quantidade.criar(cenario.quantidade)),

@@ -1,5 +1,6 @@
 import type { DataDePregao } from './data-de-pregao.js';
 import type { Dinheiro } from './dinheiro.js';
+import type { IdDeOperacao } from './id-de-operacao.js';
 import type { ErroDeQuantidade, Quantidade } from './quantidade.js';
 import type { Ticker } from './ticker.js';
 
@@ -29,4 +30,12 @@ export type ErroDeCarteira =
       readonly ultimaData: DataDePregao;
     }
   | ErroDeQuantidade;
+// #endregion
+
+// #region erro-de-lote
+// O lote falha inteiro; o erro diz que operação o derrubou e por quê.
+export interface ErroDeLote {
+  readonly operacao: IdDeOperacao;
+  readonly erro: ErroDeCarteira;
+}
 // #endregion

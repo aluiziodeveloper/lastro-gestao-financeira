@@ -1,7 +1,7 @@
 import type { ModoDeArredondamento } from './arredondamento.js';
 import type { DataDePregao } from './data-de-pregao.js';
 import type { Dinheiro } from './dinheiro.js';
-import type { ErroDeCarteira } from './erros.js';
+import type { ErroDeCarteira, ErroDeLote } from './erros.js';
 import { garantirExaustividade } from './exaustividade.js';
 import type { IdDeCarteira } from './id-de-carteira.js';
 import type { Operacao, Venda } from './operacao.js';
@@ -88,6 +88,20 @@ export class Carteira {
       });
     }
     return ok(this.#com(venda, posicoes.valor));
+  }
+  // #endregion
+
+  // #region carteira-registrar-todas
+  // Desafio do Capítulo 5: registre o lote inteiro ou nenhuma
+  // operação. Se uma operação violar uma invariante, a carteira fica
+  // como estava, e o erro aponta a primeira que falhou. Os testes
+  // estão em test/dominio/carteira-lote.test.ts.
+  registrarTodas(
+    operacoes: readonly Operacao[],
+  ): Result<Carteira, ErroDeLote> {
+    throw new Error(
+      `Desafio do Capítulo 5 não resolvido (operações: ${String(operacoes.length)})`,
+    );
   }
   // #endregion
 
