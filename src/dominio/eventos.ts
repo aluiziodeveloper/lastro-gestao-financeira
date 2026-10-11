@@ -34,25 +34,19 @@ export function criarGrupamento(
 }
 // #endregion
 
-// #region processar-evento-primeira-versao
+// #region processar-evento-guardas
 export function processarEvento(
   posicao: Posicao,
   evento: EventoCorporativo,
 ): Result<Posicao, ErroDeEvento> {
   const para = evento.proporcao.para().paraBigInt();
   const de = evento.proporcao.de().paraBigInt();
-  if (evento.tipo === 'desdobramento') {
-    if (para > de) {
-      return posicao.aplicarProporcao(evento.proporcao);
-    } else {
-      return err({ tipo: 'proporcao-invalida', evento: evento.tipo });
-    }
-  } else {
-    if (de > para) {
-      return posicao.aplicarProporcao(evento.proporcao);
-    } else {
-      return err({ tipo: 'proporcao-invalida', evento: evento.tipo });
-    }
+  if (evento.tipo === 'desdobramento' && para <= de) {
+    return err({ tipo: 'proporcao-invalida', evento: evento.tipo });
   }
+  if (evento.tipo === 'grupamento' && de <= para) {
+    return err({ tipo: 'proporcao-invalida', evento: evento.tipo });
+  }
+  return posicao.aplicarProporcao(evento.proporcao);
 }
 // #endregion
