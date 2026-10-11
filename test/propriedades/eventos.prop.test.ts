@@ -6,7 +6,7 @@ import { criarIdDeCarteira } from '../../src/dominio/id-de-carteira.js';
 import { Ticker } from '../../src/dominio/ticker.js';
 import { extrair } from '../apoio/resultado.js';
 import { umaCompra } from '../dominio/construtores.js';
-import { eventoCom, termosDeEvento } from './geradores.js';
+import { eventoCom, type Termos, termosDeEvento } from './geradores.js';
 
 const vale3 = extrair(Ticker.criar('VALE3'));
 
@@ -25,6 +25,16 @@ function carteiraCom(quantidade: number): Carteira {
 
 const umaPosicao = fc.integer({ min: 1, max: 1_000 });
 
+// #region contraexemplos-obrigatorios
+// Os contraexemplos que já derrubaram estas propriedades rodam
+// sempre, antes dos casos gerados: o menor que o encolhimento achou e
+// o da cena.
+const contraexemplos: [number, Termos][] = [
+  [1, { de: 2, para: 1 }],
+  [15, { de: 10, para: 1 }],
+];
+// #endregion
+
 describe('R3 · propriedades dos eventos', () => {
   // #region prop-quantidade-conservada
   // Antes e depois do evento, a carteira tem a mesma fatia da empresa:
@@ -41,6 +51,7 @@ describe('R3 · propriedades dos eventos', () => {
           depois.quantidadeDe(vale3) * BigInt(termos.de) + sobra,
         ).toBe(BigInt(quantidade) * BigInt(termos.para));
       }),
+      { examples: contraexemplos },
     );
   });
   // #endregion
@@ -61,6 +72,7 @@ describe('R3 · propriedades dos eventos', () => {
           );
         expect(total).toEqual(antes.custoTotalDe(vale3));
       }),
+      { examples: contraexemplos },
     );
   });
   // #endregion
