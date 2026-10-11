@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { Carteira } from '../../src/dominio/carteira.js';
+import { criarDataDePregao } from '../../src/dominio/data-de-pregao.js';
 import { Dinheiro } from '../../src/dominio/dinheiro.js';
 import { criarIdDeCarteira } from '../../src/dominio/id-de-carteira.js';
 import type { Operacao } from '../../src/dominio/operacao.js';
@@ -200,6 +201,154 @@ describe('Carteira', () => {
       );
 
       expect(carteira.quantidadeDe(vale3)).toBe(0n);
+    });
+  });
+
+  describe('na ordem cronológica', () => {
+    // #region carteira-ordem-teste
+    it('recusa a operação anterior à última registrada', () => {
+      const carteira = extrair(
+        carteiraVazia().registrar(
+          umaCompra({
+            ticker: 'VALE3',
+            data: '2026-03-12',
+            quantidade: 300,
+            precoEmCentavos: 63_00n,
+          }),
+        ),
+      );
+
+      expect(
+        carteira.registrar(
+          umaCompra({
+            ticker: 'VALE3',
+            data: '2026-03-05',
+            quantidade: 300,
+            precoEmCentavos: 61_40n,
+          }),
+        ),
+      ).toEqual(
+        err({
+          tipo: 'operacao-fora-de-ordem',
+          data: extrair(criarDataDePregao('2026-03-05')),
+          ultimaData: extrair(criarDataDePregao('2026-03-12')),
+        }),
+      );
+    });
+    // #endregion
+
+    it('recusa a data anterior mesmo em outro ativo', () => {
+      const carteira = extrair(
+        carteiraVazia().registrar(
+          umaCompra({
+            ticker: 'PETR4',
+            data: '2026-03-12',
+            quantidade: 200,
+            precoEmCentavos: 36_20n,
+          }),
+        ),
+      );
+
+      const resultado = carteira.registrar(
+        umaCompra({
+          ticker: 'VALE3',
+          data: '2026-03-05',
+          quantidade: 300,
+          precoEmCentavos: 61_40n,
+        }),
+      );
+
+      expect(resultado.ok).toBe(false);
+    });
+
+    it.each([
+      ['uma compra', umaCompra],
+      ['uma venda', umaVenda],
+    ])(
+      'compara com a data mais recente, depois de %s',
+      (_, operacao) => {
+        const carteira = extrair(
+          extrair(
+            carteiraVazia().registrar(
+              umaCompra({
+                data: '2026-03-05',
+                quantidade: 300,
+                precoEmCentavos: 36_20n,
+              }),
+            ),
+          ).registrar(
+            operacao({
+              data: '2026-03-12',
+              quantidade: 100,
+              precoEmCentavos: 36_20n,
+            }),
+          ),
+        );
+
+        expect(
+          carteira.registrar(
+            umaCompra({
+              data: '2026-03-09',
+              quantidade: 100,
+              precoEmCentavos: 36_20n,
+            }),
+          ),
+        ).toEqual(
+          err({
+            tipo: 'operacao-fora-de-ordem',
+            data: extrair(criarDataDePregao('2026-03-09')),
+            ultimaData: extrair(criarDataDePregao('2026-03-12')),
+          }),
+        );
+      },
+    );
+
+    it('aceita compra e venda no mesmo pregão', () => {
+      const carteira = extrair(
+        extrair(
+          carteiraVazia().registrar(
+            umaCompra({
+              ticker: 'VALE3',
+              data: '2026-03-12',
+              quantidade: 300,
+              precoEmCentavos: 62_00n,
+            }),
+          ),
+        ).registrar(
+          umaVenda({
+            ticker: 'VALE3',
+            data: '2026-03-12',
+            quantidade: 300,
+            precoEmCentavos: 63_00n,
+          }),
+        ),
+      );
+
+      expect(carteira.quantidadeDe(vale3)).toBe(0n);
+    });
+
+    it('aceita a venda posterior à compra, como na nota', () => {
+      const carteira = extrair(
+        extrair(
+          carteiraVazia().registrar(
+            umaCompra({
+              ticker: 'VALE3',
+              data: '2026-03-05',
+              quantidade: 300,
+              precoEmCentavos: 61_40n,
+            }),
+          ),
+        ).registrar(
+          umaVenda({
+            ticker: 'VALE3',
+            data: '2026-03-12',
+            quantidade: 100,
+            precoEmCentavos: 63_00n,
+          }),
+        ),
+      );
+
+      expect(carteira.quantidadeDe(vale3)).toBe(200n);
     });
   });
 

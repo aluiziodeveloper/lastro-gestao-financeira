@@ -1,3 +1,4 @@
+import type { DataDePregao } from './data-de-pregao.js';
 import type { Dinheiro } from './dinheiro.js';
 import type { ErroDeQuantidade, Quantidade } from './quantidade.js';
 import type { Ticker } from './ticker.js';
@@ -21,6 +22,11 @@ export type ErroDeCarteira =
       readonly ticker: Ticker;
       readonly emCarteira: Quantidade | undefined;
       readonly vendida: Quantidade;
+    }
+  | {
+      readonly tipo: 'operacao-fora-de-ordem';
+      readonly data: DataDePregao;
+      readonly ultimaData: DataDePregao;
     }
   | ErroDeQuantidade;
 // #endregion
