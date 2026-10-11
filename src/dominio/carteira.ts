@@ -5,7 +5,8 @@ import type { ErroDeCarteira } from './erros.js';
 import { garantirExaustividade } from './exaustividade.js';
 import type { IdDeCarteira } from './id-de-carteira.js';
 import type { Operacao } from './operacao.js';
-import { Posicao } from './posicao.js';
+import type { Posicao } from './posicao.js';
+import { Posicoes } from './posicoes.js';
 import { err, ok, type Result } from './resultado.js';
 import type { Ticker } from './ticker.js';
 
@@ -15,12 +16,12 @@ import type { Ticker } from './ticker.js';
 // mesmo identificador, e a carteira anterior não muda.
 export class Carteira {
   readonly #id: IdDeCarteira;
-  readonly #posicoes: ReadonlyMap<string, Posicao>;
+  readonly #posicoes: Posicoes;
   readonly #ultimaData: DataDePregao | undefined;
 
   private constructor(
     id: IdDeCarteira,
-    posicoes: ReadonlyMap<string, Posicao>,
+    posicoes: Posicoes,
     ultimaData: DataDePregao | undefined,
   ) {
     this.#id = id;
@@ -29,7 +30,7 @@ export class Carteira {
   }
 
   static abrir(id: IdDeCarteira): Carteira {
-    return new Carteira(id, new Map(), undefined);
+    return new Carteira(id, Posicoes.vazias(), undefined);
   }
 
   mesmaCarteira(outra: Carteira): boolean {
@@ -50,15 +51,14 @@ export class Carteira {
       });
     }
     // #endregion
-    const chave = operacao.ticker.paraTexto();
-    const posicao = this.#posicoes.get(chave) ?? Posicao.zerada();
+    const posicao = this.#posicoes.posicaoDe(operacao.ticker);
     switch (operacao.tipo) {
       case 'compra': {
         const comprada = posicao.comprar(operacao);
         if (!comprada.ok) {
           return comprada;
         }
-        return ok(this.#com(chave, comprada.valor, operacao.data));
+        return ok(this.#com(operacao, comprada.valor));
       }
       case 'venda': {
         const vendida = posicao.vender(operacao);
@@ -70,7 +70,7 @@ export class Carteira {
             vendida: vendida.erro.vendida,
           });
         }
-        return ok(this.#com(chave, vendida.valor, operacao.data));
+        return ok(this.#com(operacao, vendida.valor));
       }
       default:
         return garantirExaustividade(operacao);
@@ -79,21 +79,20 @@ export class Carteira {
   // #endregion
 
   quantidadeDe(ticker: Ticker): bigint {
-    return this.#posicaoDe(ticker).quantidade();
+    return this.#posicoes.posicaoDe(ticker).quantidade();
   }
 
   precoMedioDe(ticker: Ticker, modo: ModoDeArredondamento): Dinheiro {
-    return this.#posicaoDe(ticker).precoMedio(modo);
+    return this.#posicoes.posicaoDe(ticker).precoMedio(modo);
   }
 
-  #posicaoDe(ticker: Ticker): Posicao {
-    return this.#posicoes.get(ticker.paraTexto()) ?? Posicao.zerada();
-  }
-
-  #com(chave: string, posicao: Posicao, data: DataDePregao): Carteira {
-    const posicoes = new Map(this.#posicoes);
-    posicoes.set(chave, posicao);
-    return new Carteira(this.#id, posicoes, data);
+  // A operação registrada traz o ativo e a nova última data.
+  #com(operacao: Operacao, posicao: Posicao): Carteira {
+    return new Carteira(
+      this.#id,
+      this.#posicoes.com(operacao.ticker, posicao),
+      operacao.data,
+    );
   }
 }
 // #endregion
