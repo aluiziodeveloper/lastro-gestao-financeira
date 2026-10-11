@@ -77,6 +77,17 @@ export default defineConfig(
     },
   },
   // #endregion
+  // #region desafio-cap06
+  // Desafio do Capítulo 6: as regras de forma valem também para o
+  // relatório de exemplo, que é o arquivo a refatorar.
+  {
+    files: ['exemplos/cap06/relatorio-de-posicoes.ts'],
+    rules: {
+      'max-depth': ['error', 1],
+      'no-else-return': ['error', { allowElseIf: false }],
+    },
+  },
+  // #endregion
   {
     files: ['**/*.js'],
     extends: [tseslint.configs.disableTypeChecked],
