@@ -36,6 +36,17 @@ export class FracaoDeAcao implements ObjetoDeValor<FracaoDeAcao> {
     return this.#custo;
   }
 
+  // #region fracao-somar
+  // Desafio do Capítulo 7: junte duas frações do mesmo ativo, pendentes
+  // de leilão, com denominadores que podem ser diferentes. As
+  // propriedades estão em test/propriedades/fracao.prop.test.ts.
+  somar(outra: FracaoDeAcao): FracaoDeAcao {
+    throw new Error(
+      `Desafio do Capítulo 7 não resolvido (${String(outra.#numerador)})`,
+    );
+  }
+  // #endregion
+
   equivaleA(outra: FracaoDeAcao): boolean {
     return (
       this.#numerador * outra.#denominador ===
