@@ -5,7 +5,7 @@ import type { ErroDeCarteira } from './erros.js';
 import type { EventoCorporativo } from './eventos.js';
 import { garantirExaustividade } from './exaustividade.js';
 import type { IdDeCarteira } from './id-de-carteira.js';
-import type { Operacao, Venda } from './operacao.js';
+import type { Compra, Operacao, Venda } from './operacao.js';
 import { Posicoes } from './posicoes.js';
 import { err, ok, type Result } from './resultado.js';
 import type { Ticker } from './ticker.js';
@@ -49,13 +49,8 @@ export class Carteira {
       return err(foraDeOrdem);
     }
     switch (operacao.tipo) {
-      case 'compra': {
-        const posicoes = this.#posicoes.comprar(operacao);
-        if (!posicoes.ok) {
-          return posicoes;
-        }
-        return ok(this.#com(operacao, posicoes.valor));
-      }
+      case 'compra':
+        return this.#comprar(operacao);
       case 'venda':
         return this.#vender(operacao);
       default:
@@ -94,6 +89,14 @@ export class Carteira {
     return undefined;
   }
   // #endregion
+
+  #comprar(compra: Compra): Result<Carteira, ErroDeCarteira> {
+    const posicoes = this.#posicoes.comprar(compra);
+    if (!posicoes.ok) {
+      return posicoes;
+    }
+    return ok(this.#com(compra, posicoes.valor));
+  }
 
   // #region carteira-vender
   // A posição só sabe que a venda passou da quantidade; a carteira
