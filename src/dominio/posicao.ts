@@ -1,6 +1,10 @@
 import type { ModoDeArredondamento } from './arredondamento.js';
 import { Dinheiro } from './dinheiro.js';
-import type { Compra, Venda } from './operacao.js';
+import {
+  type Compra,
+  custoDeAquisicao,
+  type Venda,
+} from './operacao.js';
 import type { Proporcao } from './proporcao.js';
 import type { ErroDeQuantidade, Quantidade } from './quantidade.js';
 import { err, ok, type Result } from './resultado.js';
@@ -18,16 +22,6 @@ export interface ErroDePosicao {
 // A IN RFB 1.585/2015 não fixa o arredondamento da baixa; o Lastro
 // arredonda o custo baixado e deixa a diferença no que resta.
 const arredondamentoDaBaixa: ModoDeArredondamento = 'meio-para-cima';
-// #endregion
-
-// #region custo-de-aquisicao
-// Os custos da nota entram no custo de aquisição (IN RFB 1.585/2015,
-// art. 56, § 3º).
-function custoDeAquisicao(compra: Compra): Dinheiro {
-  return compra.precoUnitario
-    .multiplicarPor(compra.quantidade)
-    .somar(compra.custos);
-}
 // #endregion
 
 // #region posicao-primeira-compra

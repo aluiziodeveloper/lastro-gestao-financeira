@@ -91,3 +91,13 @@ export function valorBrutoDaOperacao(
   return precoUnitario.multiplicarPor(quantidade);
 }
 // #endregion
+
+// #region custo-de-aquisicao
+// Os custos da nota entram no custo de aquisição (IN RFB 1.585/2015,
+// art. 56, § 3º).
+export function custoDeAquisicao(compra: Compra): Dinheiro {
+  return compra.precoUnitario
+    .multiplicarPor(compra.quantidade)
+    .somar(compra.custos);
+}
+// #endregion
