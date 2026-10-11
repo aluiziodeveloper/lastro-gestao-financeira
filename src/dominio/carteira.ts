@@ -1,19 +1,14 @@
 import type { ModoDeArredondamento } from './arredondamento.js';
-import type { DataDePregao } from './data-de-pregao.js';
 import type { Dinheiro } from './dinheiro.js';
 import type { ErroDeCarteira } from './erros.js';
 import type { EventoCorporativo } from './eventos.js';
 import { garantirExaustividade } from './exaustividade.js';
 import type { IdDeCarteira } from './id-de-carteira.js';
 import type { Compra, Operacao, Venda } from './operacao.js';
+import { type Datado, OrdemCronologica } from './ordem-cronologica.js';
 import { Posicoes } from './posicoes.js';
 import { err, ok, type Result } from './resultado.js';
 import type { Ticker } from './ticker.js';
-
-// Operações e eventos têm data de pregão; a ordem vale para os dois.
-interface Datado {
-  readonly data: DataDePregao;
-}
 
 // #region carteira-classe
 // A carteira é uma entidade: o identificador continua o mesmo enquanto
@@ -22,20 +17,24 @@ interface Datado {
 export class Carteira {
   readonly #id: IdDeCarteira;
   readonly #posicoes: Posicoes;
-  readonly #ultimaData: DataDePregao | undefined;
+  readonly #ordem: OrdemCronologica;
 
   private constructor(
     id: IdDeCarteira,
     posicoes: Posicoes,
-    ultimaData: DataDePregao | undefined,
+    ordem: OrdemCronologica,
   ) {
     this.#id = id;
     this.#posicoes = posicoes;
-    this.#ultimaData = ultimaData;
+    this.#ordem = ordem;
   }
 
   static abrir(id: IdDeCarteira): Carteira {
-    return new Carteira(id, Posicoes.vazias(), undefined);
+    return new Carteira(
+      id,
+      Posicoes.vazias(),
+      OrdemCronologica.vazia(),
+    );
   }
 
   mesmaCarteira(outra: Carteira): boolean {
@@ -44,7 +43,7 @@ export class Carteira {
 
   // #region carteira-registrar
   registrar(operacao: Operacao): Result<Carteira, ErroDeCarteira> {
-    const foraDeOrdem = this.#foraDeOrdem(operacao);
+    const foraDeOrdem = this.#ordem.recusa(operacao);
     if (foraDeOrdem !== undefined) {
       return err(foraDeOrdem);
     }
@@ -62,7 +61,7 @@ export class Carteira {
   // #region carteira-aplicar-evento
   // O evento corporativo também entra em ordem cronológica.
   aplicar(evento: EventoCorporativo): Result<Carteira, ErroDeCarteira> {
-    const foraDeOrdem = this.#foraDeOrdem(evento);
+    const foraDeOrdem = this.#ordem.recusa(evento);
     if (foraDeOrdem !== undefined) {
       return err(foraDeOrdem);
     }
@@ -71,22 +70,6 @@ export class Carteira {
       return posicoes;
     }
     return ok(this.#com(evento, posicoes.valor));
-  }
-  // #endregion
-
-  // #region carteira-ordem-cronologica
-  // Operações do mesmo pregão entram em qualquer ordem; uma data
-  // anterior à última registrada, em qualquer ativo, é recusada.
-  #foraDeOrdem(operacao: Datado): ErroDeCarteira | undefined {
-    const ultimaData = this.#ultimaData;
-    if (ultimaData !== undefined && operacao.data < ultimaData) {
-      return {
-        tipo: 'operacao-fora-de-ordem',
-        data: operacao.data,
-        ultimaData,
-      };
-    }
-    return undefined;
   }
   // #endregion
 
@@ -125,7 +108,11 @@ export class Carteira {
 
   // A operação registrada traz a nova última data.
   #com(operacao: Datado, posicoes: Posicoes): Carteira {
-    return new Carteira(this.#id, posicoes, operacao.data);
+    return new Carteira(
+      this.#id,
+      posicoes,
+      this.#ordem.depoisDe(operacao),
+    );
   }
 }
 // #endregion
