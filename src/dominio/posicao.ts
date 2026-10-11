@@ -2,7 +2,7 @@ import type { ModoDeArredondamento } from './arredondamento.js';
 import { Dinheiro } from './dinheiro.js';
 import type { Compra, Venda } from './operacao.js';
 import type { Proporcao } from './proporcao.js';
-import { type ErroDeQuantidade, Quantidade } from './quantidade.js';
+import type { ErroDeQuantidade, Quantidade } from './quantidade.js';
 import { err, ok, type Result } from './resultado.js';
 
 // #region erro-de-posicao
@@ -111,10 +111,7 @@ export class Posicao {
     if (this.#quantidade === undefined) {
       return ok(this);
     }
-    const unidades =
-      (this.#quantidade.paraBigInt() * proporcao.para().paraBigInt()) /
-      proporcao.de().paraBigInt();
-    const quantidade = Quantidade.criar(Number(unidades));
+    const quantidade = proporcao.aplicadaA(this.#quantidade);
     if (!quantidade.ok) {
       return quantidade;
     }

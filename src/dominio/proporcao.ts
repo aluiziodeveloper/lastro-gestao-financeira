@@ -1,9 +1,11 @@
 import { inspecionar, type ObjetoDeValor } from './objeto-de-valor.js';
-import type { Quantidade } from './quantidade.js';
+import { type ErroDeQuantidade, Quantidade } from './quantidade.js';
+import type { Result } from './resultado.js';
 
 // #region proporcao-classe
 // Quantas ações viram quantas: no desdobramento 1:2, cada ação vira
-// duas; no grupamento 10:1, dez viram uma.
+// duas; no grupamento 10:1, dez viram uma. A proporção responde às
+// perguntas do evento e se aplica a uma quantidade.
 export class Proporcao implements ObjetoDeValor<Proporcao> {
   readonly #de: Quantidade;
   readonly #para: Quantidade;
@@ -17,12 +19,21 @@ export class Proporcao implements ObjetoDeValor<Proporcao> {
     return new Proporcao(de, para);
   }
 
-  de(): Quantidade {
-    return this.#de;
+  aumenta(): boolean {
+    return this.#para.paraBigInt() > this.#de.paraBigInt();
   }
 
-  para(): Quantidade {
-    return this.#para;
+  diminui(): boolean {
+    return this.#para.paraBigInt() < this.#de.paraBigInt();
+  }
+
+  aplicadaA(
+    quantidade: Quantidade,
+  ): Result<Quantidade, ErroDeQuantidade> {
+    const unidades =
+      (quantidade.paraBigInt() * this.#para.paraBigInt()) /
+      this.#de.paraBigInt();
+    return Quantidade.criar(Number(unidades));
   }
 
   equivaleA(outra: Proporcao): boolean {

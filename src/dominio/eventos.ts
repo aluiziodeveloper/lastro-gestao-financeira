@@ -38,8 +38,7 @@ export function criarDesdobramento(
     data,
     ticker,
     aplicarA(posicao) {
-      const para = proporcao.para().paraBigInt();
-      if (para <= proporcao.de().paraBigInt()) {
+      if (!proporcao.aumenta()) {
         return err({
           tipo: 'proporcao-invalida',
           evento: 'desdobramento',
@@ -61,8 +60,7 @@ export function criarGrupamento(
     data,
     ticker,
     aplicarA(posicao) {
-      const de = proporcao.de().paraBigInt();
-      if (de <= proporcao.para().paraBigInt()) {
+      if (!proporcao.diminui()) {
         return err({
           tipo: 'proporcao-invalida',
           evento: 'grupamento',
