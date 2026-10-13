@@ -198,6 +198,40 @@ describe('R3 · frações de ação', () => {
   });
   // #endregion
 
+  // #region eventos-arredondamento
+  // Caracteriza a política atual até o Capítulo 11: as ações inteiras
+  // levam o custo arredondado meio para cima, e a fração, o resto. O
+  // Stryker não gera a troca de modo que o Capítulo 7 fez à mão.
+  it('arredonda meio para cima o custo das ações inteiras', () => {
+    const carteira = extrair(
+      carteiraCom(1).aplicar(criarDesdobramento(evento(3, 7))),
+    );
+
+    expect(carteira.quantidadeDe(vale3)).toBe(2n);
+    expect(carteira.custoTotalDe(vale3)).toEqual(
+      Dinheiro.deCentavos(52_63n),
+    );
+    expect(carteira.fracoesPendentesDe(vale3)).toEqual([
+      FracaoDeAcao.de(1n, 3n, Dinheiro.deCentavos(8_77n)),
+    ]);
+  });
+
+  // No meio exato, 5.372,5 centavos, só o modo decide: meio-par e
+  // truncar dariam R$ 53,72.
+  it('arredonda para cima o custo que cai no meio do centavo', () => {
+    const carteira = extrair(
+      carteiraCom(1).aplicar(criarDesdobramento(evento(7, 8))),
+    );
+
+    expect(carteira.custoTotalDe(vale3)).toEqual(
+      Dinheiro.deCentavos(53_73n),
+    );
+    expect(carteira.fracoesPendentesDe(vale3)).toEqual([
+      FracaoDeAcao.de(1n, 7n, Dinheiro.deCentavos(7_67n)),
+    ]);
+  });
+  // #endregion
+
   it('zera a posição menor que o grupamento e guarda a fração', () => {
     const carteira = extrair(
       carteiraCom(1).aplicar(criarGrupamento(evento(2, 1))),
