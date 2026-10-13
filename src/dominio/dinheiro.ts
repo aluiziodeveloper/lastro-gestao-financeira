@@ -31,6 +31,12 @@ export class Dinheiro implements ObjetoDeValor<Dinheiro> {
   }
   // #endregion
 
+  // #region dinheiro-excede
+  excede(limite: Dinheiro): boolean {
+    return this.#centavos > limite.#centavos;
+  }
+  // #endregion
+
   // #region dinheiro-inspecionar
   [inspecionar](): string {
     return `Dinheiro(${String(this.#centavos)} centavos)`;
