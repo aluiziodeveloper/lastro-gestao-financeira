@@ -186,6 +186,18 @@ describe('R3 · frações de ação', () => {
     ]);
   });
 
+  // #region eventos-sem-fracao
+  // Sem resto, nenhuma fração: nem a de zero ação. Caso revelado por um
+  // mutante sobrevivente no Capítulo 8.
+  it('não deixa fração quando o evento divide a posição', () => {
+    const carteira = extrair(
+      carteiraCom(300).aplicar(criarGrupamento(evento(10, 1))),
+    );
+
+    expect(carteira.fracoesPendentesDe(vale3)).toEqual([]);
+  });
+  // #endregion
+
   it('zera a posição menor que o grupamento e guarda a fração', () => {
     const carteira = extrair(
       carteiraCom(1).aplicar(criarGrupamento(evento(2, 1))),

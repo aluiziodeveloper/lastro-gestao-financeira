@@ -20,6 +20,10 @@ describe('Proporcao', () => {
     expect(proporcao(1, 2)).not.toEqual(proporcao(2, 1));
   });
 
+  it('não equivale à proporção com um só termo diferente', () => {
+    expect(proporcao(1, 2)).not.toEqual(proporcao(1, 3));
+  });
+
   it('mostra os termos na mensagem de falha', () => {
     expect(() => {
       expect(proporcao(1, 2)).toEqual(proporcao(10, 1));

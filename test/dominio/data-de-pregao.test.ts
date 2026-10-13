@@ -4,12 +4,15 @@ import { criarDataDePregao } from '../../src/dominio/data-de-pregao.js';
 import { err, ok } from '../../src/dominio/resultado.js';
 
 describe('DataDePregao', () => {
-  it.each(['2026-03-16', '2024-02-29', '2000-02-29', '2026-12-31'])(
-    'aceita %s, que existe no calendário',
-    (texto) => {
-      expect(criarDataDePregao(texto)).toEqual(ok(texto));
-    },
-  );
+  it.each([
+    '2026-03-16',
+    '2024-02-29',
+    '2000-02-29',
+    '2026-12-31',
+    '2026-04-01',
+  ])('aceita %s, que existe no calendário', (texto) => {
+    expect(criarDataDePregao(texto)).toEqual(ok(texto));
+  });
 
   it.each([
     ['16/03/2026', 'no formato brasileiro'],
