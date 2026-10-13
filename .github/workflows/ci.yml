@@ -29,3 +29,26 @@ jobs:
 
       - name: Testes
         run: npm test
+
+  # #region ci-mutacao
+  # Só depois de tipos, lint e testes verdes: a mutação roda a suíte
+  # inteira contra cada mutante, e o Stryker falha abaixo de 85%.
+  mutacao:
+    name: Testes de mutação
+    needs: verificar
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Instalação das dependências
+        run: npm ci
+
+      - name: Mutação do domínio
+        run: npm run mutacao
+  # #endregion
