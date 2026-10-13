@@ -13,5 +13,10 @@ describe('Dinheiro.excede', () => {
   it('R$ 10.000,00 não excede R$ 20.000,00', () => {
     expect(Dinheiro.deCentavos(10_000_00n).excede(limite)).toBe(false);
   });
+
+  // A fronteira: quem fica exatamente no limite não o excede.
+  it('R$ 20.000,00 não excede R$ 20.000,00', () => {
+    expect(Dinheiro.deCentavos(20_000_00n).excede(limite)).toBe(false);
+  });
 });
 // #endregion
