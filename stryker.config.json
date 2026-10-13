@@ -1,0 +1,17 @@
+{
+  "mutate": ["src/**/*.ts"],
+  "testRunner": "command",
+  "commandRunner": {
+    "command": "npx vitest run --bail 1"
+  },
+  "checkers": ["typescript"],
+  "tsconfigFile": "tsconfig.json",
+  "coverageAnalysis": "off",
+  "reporters": ["clear-text", "html", "json"],
+  "thresholds": {
+    "high": 90,
+    "low": 80,
+    "break": 85
+  },
+  "timeoutMS": 60000
+}
