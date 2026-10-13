@@ -1,0 +1,13 @@
+{
+  "mutate": ["exemplos/cap08/isencao-cena.ts"],
+  "testRunner": "command",
+  "commandRunner": {
+    "command": "npx vitest run -c exemplos/vitest.config.ts exemplos/cap08/isencao-cena.test.ts"
+  },
+  "checkers": ["typescript"],
+  "tsconfigFile": "tsconfig.json",
+  "coverageAnalysis": "off",
+  "reporters": ["clear-text"],
+  "thresholds": { "high": 90, "low": 80, "break": null },
+  "timeoutMS": 60000
+}
