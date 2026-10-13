@@ -13,13 +13,14 @@ export function dividirArredondando(
 ): bigint {
   const quociente = dividendo / divisor; // trunca em direção a zero
   const resto = dividendo % divisor;
-  if (resto === 0n || modo === 'truncar') {
+  if (modo === 'truncar') {
     return quociente;
   }
   const afastarDoZero =
     dividendo * divisor > 0n ? quociente + 1n : quociente - 1n;
   const dobroDoResto = absoluto(resto) * 2n;
   const divisorAbsoluto = absoluto(divisor);
+  // Abaixo da metade, inclusive na divisão exata, de resto zero.
   if (dobroDoResto < divisorAbsoluto) {
     return quociente;
   }
