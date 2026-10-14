@@ -169,3 +169,19 @@ describe('Dinheiro: multiplicação por fração', () => {
     ).toEqual(Dinheiro.deCentavos(66n));
   });
 });
+
+describe('Dinheiro: excede', () => {
+  const limite = Dinheiro.deCentavos(20_000_00n);
+
+  it('excede o limite com um centavo a mais', () => {
+    expect(Dinheiro.deCentavos(20_000_01n).excede(limite)).toBe(true);
+  });
+
+  it('não excede o limite com o valor exato', () => {
+    expect(Dinheiro.deCentavos(20_000_00n).excede(limite)).toBe(false);
+  });
+
+  it('não excede o limite com um valor menor', () => {
+    expect(Dinheiro.deCentavos(10_000_00n).excede(limite)).toBe(false);
+  });
+});

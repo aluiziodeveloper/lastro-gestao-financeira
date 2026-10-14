@@ -1,10 +1,6 @@
 import { describe, it } from 'vitest';
 
 // #region especificacao-regras
-describe('R4 · ações em operação comum · Capítulo 9', () => {
-  it.todo('isenta as vendas do mês que somam até R$ 20.000,00');
-});
-
 describe('R5 · day trade · Capítulo 9', () => {
   it.todo('tributa o lucro de day trade a 20%, sem isenção');
 });

@@ -25,6 +25,7 @@ function centavos(valor: bigint): Dinheiro {
 const catalogo = CatalogoDeAtivos.vazio()
   .com(ticker('PETR4'), 'acao')
   .com(ticker('VALE3'), 'acao')
+  .com(ticker('ITUB4'), 'acao')
   .com(ticker('HGLG11'), 'fii');
 
 function carteiraCom(operacoes: readonly Operacao[]): Carteira {
@@ -44,6 +45,7 @@ function apurar(
 function acoesEmOperacaoComum(
   totalVendido: bigint,
   resultado: bigint,
+  isenta: boolean,
   imposto: bigint,
 ) {
   return [
@@ -51,52 +53,85 @@ function acoesEmOperacaoComum(
       categoria: 'acoes-comum',
       totalVendido: centavos(totalVendido),
       resultado: centavos(resultado),
+      isenta,
       imposto: centavos(imposto),
     },
   ];
 }
 
+const fevereiroDaCena = [
+  umaCompra({
+    ticker: 'PETR4',
+    data: '2026-02-10',
+    quantidade: 100,
+    precoEmCentavos: 32_93n,
+    custosEmCentavos: 3_00n,
+  }),
+  umaCompra({
+    ticker: 'VALE3',
+    data: '2026-02-10',
+    quantidade: 267,
+    precoEmCentavos: 58_03n,
+    custosEmCentavos: 4_00n,
+  }),
+];
+
+const marcoDaCena = [
+  umaVenda({
+    ticker: 'PETR4',
+    data: '2026-03-16',
+    quantidade: 100,
+    precoEmCentavos: 37_05n,
+    custosEmCentavos: 1_11n,
+  }),
+  umaVenda({
+    ticker: 'VALE3',
+    data: '2026-03-16',
+    quantidade: 267,
+    precoEmCentavos: 61_03n,
+    custosEmCentavos: 4_89n,
+  }),
+];
+
 // #region apuracao-cena
 describe('Apuração mensal: ações em operação comum', () => {
   it('cobra R$ 180,00 sobre R$ 1.200,00 de lucro na cena', () => {
-    const fevereiro = [
-      umaCompra({
-        ticker: 'PETR4',
-        data: '2026-02-10',
-        quantidade: 100,
-        precoEmCentavos: 32_93n,
-        custosEmCentavos: 3_00n,
-      }),
-      umaCompra({
-        ticker: 'VALE3',
-        data: '2026-02-10',
-        quantidade: 267,
-        precoEmCentavos: 58_03n,
-        custosEmCentavos: 4_00n,
-      }),
-    ];
-    const marco = [
-      umaVenda({
-        ticker: 'PETR4',
-        data: '2026-03-16',
-        quantidade: 100,
-        precoEmCentavos: 37_05n,
-        custosEmCentavos: 1_11n,
-      }),
-      umaVenda({
-        ticker: 'VALE3',
-        data: '2026-03-16',
-        quantidade: 267,
-        precoEmCentavos: 61_03n,
-        custosEmCentavos: 4_89n,
-      }),
-    ];
-
-    const apuracao = extrair(apurar(fevereiro, marco));
+    const apuracao = extrair(apurar(fevereiroDaCena, marcoDaCena));
 
     expect(apuracao.categorias).toEqual(
-      acoesEmOperacaoComum(20_000_01n, 1_200_00n, 180_00n),
+      acoesEmOperacaoComum(20_000_01n, 1_200_00n, false, 180_00n),
     );
+  });
+});
+// #endregion
+
+// #region apuracao-isencao-fronteira
+describe('R4 · isenção de R$ 20 mil · na fronteira', () => {
+  it('isenta o mês com R$ 20.000,00 vendidos', () => {
+    const compra = umaCompra({
+      ticker: 'ITUB4',
+      data: '2026-02-10',
+      quantidade: 1_000,
+      precoEmCentavos: 15_00n,
+    });
+    const venda = umaVenda({
+      ticker: 'ITUB4',
+      data: '2026-03-16',
+      quantidade: 1_000,
+      precoEmCentavos: 20_00n,
+    });
+
+    const [acoes] = extrair(apurar([compra], [venda])).categorias;
+
+    expect(acoes?.imposto).toEqual(centavos(0n));
+  });
+
+  it('tributa todo o lucro do mês com R$ 20.000,01 vendidos', () => {
+    const [acoes] = extrair(
+      apurar(fevereiroDaCena, marcoDaCena),
+    ).categorias;
+
+    expect(acoes?.imposto).toEqual(centavos(180_00n));
   });
 });
 // #endregion
@@ -105,12 +140,12 @@ describe('Apuração mensal: resultado da venda', () => {
   const compras = [
     umaCompra({
       data: '2026-02-02',
-      quantidade: 100,
+      quantidade: 2_000,
       precoEmCentavos: 10_00n,
     }),
     umaCompra({
       data: '2026-02-03',
-      quantidade: 100,
+      quantidade: 2_000,
       precoEmCentavos: 12_00n,
     }),
   ];
@@ -118,37 +153,37 @@ describe('Apuração mensal: resultado da venda', () => {
   it('baixa o custo pelo preço médio da posição', () => {
     const venda = umaVenda({
       data: '2026-03-02',
-      quantidade: 100,
+      quantidade: 2_000,
       precoEmCentavos: 15_00n,
     });
 
     expect(extrair(apurar(compras, [venda])).categorias).toEqual(
-      acoesEmOperacaoComum(1_500_00n, 400_00n, 60_00n),
+      acoesEmOperacaoComum(30_000_00n, 8_000_00n, false, 1_200_00n),
     );
   });
 
   it('desconta os custos da nota de venda', () => {
     const venda = umaVenda({
       data: '2026-03-02',
-      quantidade: 100,
+      quantidade: 2_000,
       precoEmCentavos: 15_00n,
       custosEmCentavos: 5_00n,
     });
 
     expect(extrair(apurar(compras, [venda])).categorias).toEqual(
-      acoesEmOperacaoComum(1_500_00n, 395_00n, 59_25n),
+      acoesEmOperacaoComum(30_000_00n, 7_995_00n, false, 1_199_25n),
     );
   });
 
   it('guarda o prejuízo e não cobra imposto', () => {
     const venda = umaVenda({
       data: '2026-03-02',
-      quantidade: 100,
+      quantidade: 3_000,
       precoEmCentavos: 9_00n,
     });
 
     expect(extrair(apurar(compras, [venda])).categorias).toEqual(
-      acoesEmOperacaoComum(900_00n, -200_00n, 0n),
+      acoesEmOperacaoComum(27_000_00n, -6_000_00n, false, 0n),
     );
   });
 
@@ -160,40 +195,40 @@ describe('Apuração mensal: resultado da venda', () => {
     });
 
     expect(extrair(apurar(compras, [compra])).categorias).toEqual(
-      acoesEmOperacaoComum(0n, 0n, 0n),
+      acoesEmOperacaoComum(0n, 0n, true, 0n),
     );
   });
 
   it('devolve a carteira do fim do mês', () => {
     const venda = umaVenda({
       data: '2026-03-02',
-      quantidade: 150,
+      quantidade: 1_500,
       precoEmCentavos: 15_00n,
     });
 
     const { carteira } = extrair(apurar(compras, [venda]));
 
-    expect(carteira.quantidadeDe(ticker('PETR4'))).toBe(50n);
+    expect(carteira.quantidadeDe(ticker('PETR4'))).toBe(2_500n);
   });
 });
 
 describe('Apuração mensal: erros', () => {
   it('recusa a venda de um ativo fora do catálogo', () => {
     const compra = umaCompra({
-      ticker: 'ITUB4',
+      ticker: 'BBAS3',
       data: '2026-02-02',
       quantidade: 10,
       precoEmCentavos: 30_00n,
     });
     const venda = umaVenda({
-      ticker: 'ITUB4',
+      ticker: 'BBAS3',
       data: '2026-03-02',
       quantidade: 10,
       precoEmCentavos: 31_00n,
     });
 
     expect(apurar([compra], [venda])).toEqual(
-      err({ tipo: 'ativo-fora-do-catalogo', ticker: ticker('ITUB4') }),
+      err({ tipo: 'ativo-fora-do-catalogo', ticker: ticker('BBAS3') }),
     );
   });
 

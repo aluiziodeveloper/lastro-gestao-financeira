@@ -64,6 +64,12 @@ export class Dinheiro implements ObjetoDeValor<Dinheiro> {
   }
   // #endregion
 
+  // #region dinheiro-excede
+  excede(limite: Dinheiro): boolean {
+    return this.#centavos > limite.#centavos;
+  }
+  // #endregion
+
   // #region dinheiro-multiplicar-por-fracao
   // Multiplica por uma fração exata e arredonda uma vez, no fim: é como
   // a alíquota se aplica ao resultado do mês.

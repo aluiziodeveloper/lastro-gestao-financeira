@@ -6,11 +6,12 @@ import type { Ticker } from '../ticker.js';
 
 // #region apuracao-do-mes
 // O resultado de uma categoria no mês: o total vendido, o resultado
-// das vendas, positivo ou negativo, e o imposto sobre ele.
+// das vendas, positivo ou negativo, se o mês é isento e o imposto.
 export interface ResultadoDaCategoria {
   readonly categoria: 'acoes-comum';
   readonly totalVendido: Dinheiro;
   readonly resultado: Dinheiro;
+  readonly isenta: boolean;
   readonly imposto: Dinheiro;
 }
 

@@ -14,6 +14,13 @@ import { registrarNaCarteira } from './resultado-da-venda.js';
 const zero = Dinheiro.deCentavos(0n);
 const quinzePorCento = Aliquota.de(15n, 100n);
 
+// #region isencao-mensal
+// Ações em operação comum: se o total vendido no mês não passa de
+// R$ 20.000,00, o ganho do mês inteiro é isento; passou um centavo, o
+// ganho inteiro é tributável (Lei 11.033/2004, art. 3º, I).
+const limiteDeIsencao = Dinheiro.deCentavos(20_000_00n);
+// #endregion
+
 // #region apuracao-mensal
 // Serviço de domínio: a apuração não pertence à carteira nem ao
 // catálogo. Ela usa os dois, operação por operação, e aplica a lei.
@@ -27,10 +34,17 @@ export function apurarMes(
     return fim;
   }
   const { totalVendido, resultado } = fim.valor;
-  const imposto = quinzePorCento.sobreGanho(resultado);
+  const isenta = !totalVendido.excede(limiteDeIsencao);
+  const imposto = isenta ? zero : quinzePorCento.sobreGanho(resultado);
   return ok({
     categorias: [
-      { categoria: 'acoes-comum', totalVendido, resultado, imposto },
+      {
+        categoria: 'acoes-comum',
+        totalVendido,
+        resultado,
+        isenta,
+        imposto,
+      },
     ],
     carteira: fim.valor.carteira,
   });
