@@ -3,7 +3,7 @@ import type { CatalogoDeAtivos } from '../ativo.js';
 import type { Carteira } from '../carteira.js';
 import { Dinheiro } from '../dinheiro.js';
 import { garantirExaustividade } from '../exaustividade.js';
-import { err, ok, type Result } from '../resultado.js';
+import { ok, type Result } from '../resultado.js';
 import type {
   ErroDeApuracao,
   ResultadoDaCategoria,
@@ -20,15 +20,16 @@ export interface Andamento {
   readonly carteira: Carteira;
   readonly acoes: Totais;
   readonly fii: Totais;
+  readonly etf: Totais;
 }
 
 export function andamentoInicial(carteira: Carteira): Andamento {
-  return { carteira, acoes: vazios, fii: vazios };
+  return { carteira, acoes: vazios, fii: vazios, etf: vazios };
 }
 
 // #region apuracao-switch
-// Cada classe de ativo tem a sua regra; o que ainda não tem regra é
-// recusado com nome, e não apurado como ação por engano.
+// Cada classe de ativo soma as vendas no seu total; um caso esquecido
+// não compila, graças à verificação de exaustividade.
 export function somarVenda(
   andamento: Andamento,
   venda: ResultadoDaVenda,
@@ -44,11 +45,7 @@ export function somarVenda(
     case 'fii':
       return ok({ ...andamento, fii: somar(andamento.fii, venda) });
     case 'etf':
-      return err({
-        tipo: 'classe-ainda-nao-apurada',
-        classe: classe.valor,
-        ticker: venda.venda.ticker,
-      });
+      return ok({ ...andamento, etf: somar(andamento.etf, venda) });
     default:
       return garantirExaustividade(classe.valor);
   }
@@ -76,13 +73,14 @@ const limiteDeIsencao = Dinheiro.deCentavos(20_000_00n);
 // #endregion
 
 export function categoriasDoMes(
-  { acoes, fii }: Andamento,
+  { acoes, fii, etf }: Andamento,
   dayTrade: Totais,
 ): ResultadoDaCategoria[] {
   return [
     acoesEmOperacaoComum(acoes),
     tributada('day-trade', dayTrade, vintePorCento),
     tributada('fii', fii, vintePorCento),
+    tributada('etf', etf, quinzePorCento),
   ];
 }
 
@@ -101,10 +99,10 @@ function acoesEmOperacaoComum({
   };
 }
 
-// Day trade e FII: 20% sobre o resultado do mês, sem isenção (IN RFB
-// 1.585/2015, art. 65, § 11, e art. 37; art. 59, § 2º, I).
+// Day trade e FII a 20%, ETF de ações a 15%, sem isenção (IN RFB
+// 1.585/2015, arts. 65, § 11, 37 e 57; art. 59, § 2º, I e II).
 function tributada(
-  categoria: 'day-trade' | 'fii',
+  categoria: 'day-trade' | 'fii' | 'etf',
   { totalVendido, resultado }: Totais,
   aliquota: Aliquota,
 ): ResultadoDaCategoria {

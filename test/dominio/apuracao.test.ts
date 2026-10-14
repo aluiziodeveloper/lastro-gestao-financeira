@@ -278,29 +278,6 @@ describe('Apuração mensal: erros', () => {
     );
   });
 
-  it('recusa, por enquanto, a venda de ETF', () => {
-    const compra = umaCompra({
-      ticker: 'BOVA11',
-      data: '2026-02-02',
-      quantidade: 10,
-      precoEmCentavos: 125_00n,
-    });
-    const venda = umaVenda({
-      ticker: 'BOVA11',
-      data: '2026-03-02',
-      quantidade: 10,
-      precoEmCentavos: 130_00n,
-    });
-
-    expect(apurar([compra], [venda])).toEqual(
-      err({
-        tipo: 'classe-ainda-nao-apurada',
-        classe: 'etf',
-        ticker: ticker('BOVA11'),
-      }),
-    );
-  });
-
   it('devolve o erro da carteira, como a venda a descoberto', () => {
     const venda = umaVenda({
       data: '2026-03-02',
@@ -562,4 +539,60 @@ describe('R6 · venda de cotas de FII', () => {
     );
   });
   // #endregion
+});
+
+describe('ETF de ações', () => {
+  const compraDeEtf = umaCompra({
+    ticker: 'BOVA11',
+    data: '2026-02-10',
+    quantidade: 200,
+    precoEmCentavos: 125_00n,
+  });
+
+  it('cobra 15% sobre o ganho, sem isenção mesmo numa venda pequena', () => {
+    const venda = umaVenda({
+      ticker: 'BOVA11',
+      data: '2026-03-20',
+      quantidade: 10,
+      precoEmCentavos: 130_00n,
+    });
+
+    expect(
+      daCategoria(extrair(apurar([compraDeEtf], [venda])), 'etf'),
+    ).toEqual({
+      categoria: 'etf',
+      totalVendido: centavos(1_300_00n),
+      resultado: centavos(50_00n),
+      isenta: false,
+      imposto: centavos(7_50n),
+    });
+  });
+
+  it('não soma as vendas de ETF ao limite das ações', () => {
+    const compraDeAcoes = umaCompra({
+      data: '2026-02-10',
+      quantidade: 1_000,
+      precoEmCentavos: 15_00n,
+    });
+    const vendaDeAcoes = umaVenda({
+      data: '2026-03-02',
+      quantidade: 1_000,
+      precoEmCentavos: 18_00n,
+    });
+    const vendaDeEtf = umaVenda({
+      ticker: 'BOVA11',
+      data: '2026-03-20',
+      quantidade: 200,
+      precoEmCentavos: 130_00n,
+    });
+
+    const apuracao = extrair(
+      apurar([compraDeAcoes, compraDeEtf], [vendaDeAcoes, vendaDeEtf]),
+    );
+
+    expect(daCategoria(apuracao, 'acoes-comum')?.isenta).toBe(true);
+    expect(daCategoria(apuracao, 'etf')?.imposto).toEqual(
+      centavos(150_00n),
+    );
+  });
 });
