@@ -63,5 +63,23 @@ export class Dinheiro implements ObjetoDeValor<Dinheiro> {
     );
   }
   // #endregion
+
+  // #region dinheiro-multiplicar-por-fracao
+  // Multiplica por uma fração exata e arredonda uma vez, no fim: é como
+  // a alíquota se aplica ao resultado do mês.
+  multiplicarPorFracao(
+    numerador: bigint,
+    denominador: bigint,
+    modo: ModoDeArredondamento,
+  ): Dinheiro {
+    return new Dinheiro(
+      dividirArredondando(
+        this.#centavos * numerador,
+        denominador,
+        modo,
+      ),
+    );
+  }
+  // #endregion
 }
 // #endregion

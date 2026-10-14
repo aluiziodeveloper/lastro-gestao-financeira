@@ -147,3 +147,25 @@ describe('Dinheiro: sinal', () => {
     },
   );
 });
+
+describe('Dinheiro: multiplicação por fração', () => {
+  it('multiplica antes de dividir e arredonda uma vez', () => {
+    expect(
+      Dinheiro.deCentavos(1_00n).multiplicarPorFracao(
+        2n,
+        3n,
+        'meio-para-cima',
+      ),
+    ).toEqual(Dinheiro.deCentavos(67n));
+  });
+
+  it('respeita o modo de arredondamento', () => {
+    expect(
+      Dinheiro.deCentavos(1_00n).multiplicarPorFracao(
+        2n,
+        3n,
+        'truncar',
+      ),
+    ).toEqual(Dinheiro.deCentavos(66n));
+  });
+});
