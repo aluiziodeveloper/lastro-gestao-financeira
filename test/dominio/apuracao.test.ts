@@ -4,6 +4,10 @@ import {
   CatalogoDeAtivos,
   type ClasseDeAtivo,
 } from '../../src/dominio/ativo.js';
+import type {
+  ApuracaoDoMes,
+  ResultadoDaCategoria,
+} from '../../src/dominio/apuracao/apuracao-do-mes.js';
 import { apurarMes } from '../../src/dominio/apuracao/apuracao-mensal.js';
 import { Carteira } from '../../src/dominio/carteira.js';
 import { Dinheiro } from '../../src/dominio/dinheiro.js';
@@ -48,15 +52,22 @@ function acoesEmOperacaoComum(
   isenta: boolean,
   imposto: bigint,
 ) {
-  return [
-    {
-      categoria: 'acoes-comum',
-      totalVendido: centavos(totalVendido),
-      resultado: centavos(resultado),
-      isenta,
-      imposto: centavos(imposto),
-    },
-  ];
+  return {
+    categoria: 'acoes-comum',
+    totalVendido: centavos(totalVendido),
+    resultado: centavos(resultado),
+    isenta,
+    imposto: centavos(imposto),
+  };
+}
+
+function daCategoria(
+  apuracao: ApuracaoDoMes,
+  categoria: ResultadoDaCategoria['categoria'],
+) {
+  return apuracao.categorias.find(
+    (item) => item.categoria === categoria,
+  );
 }
 
 const fevereiroDaCena = [
@@ -98,7 +109,7 @@ describe('Apuração mensal: ações em operação comum', () => {
   it('cobra R$ 180,00 sobre R$ 1.200,00 de lucro na cena', () => {
     const apuracao = extrair(apurar(fevereiroDaCena, marcoDaCena));
 
-    expect(apuracao.categorias).toEqual(
+    expect(daCategoria(apuracao, 'acoes-comum')).toEqual(
       acoesEmOperacaoComum(20_000_01n, 1_200_00n, false, 180_00n),
     );
   });
@@ -121,17 +132,19 @@ describe('R4 · isenção de R$ 20 mil · na fronteira', () => {
       precoEmCentavos: 20_00n,
     });
 
-    const [acoes] = extrair(apurar([compra], [venda])).categorias;
+    const apuracao = extrair(apurar([compra], [venda]));
 
-    expect(acoes?.imposto).toEqual(centavos(0n));
+    expect(daCategoria(apuracao, 'acoes-comum')?.imposto).toEqual(
+      centavos(0n),
+    );
   });
 
   it('tributa todo o lucro do mês com R$ 20.000,01 vendidos', () => {
-    const [acoes] = extrair(
-      apurar(fevereiroDaCena, marcoDaCena),
-    ).categorias;
+    const apuracao = extrair(apurar(fevereiroDaCena, marcoDaCena));
 
-    expect(acoes?.imposto).toEqual(centavos(180_00n));
+    expect(daCategoria(apuracao, 'acoes-comum')?.imposto).toEqual(
+      centavos(180_00n),
+    );
   });
 });
 // #endregion
@@ -157,7 +170,9 @@ describe('Apuração mensal: resultado da venda', () => {
       precoEmCentavos: 15_00n,
     });
 
-    expect(extrair(apurar(compras, [venda])).categorias).toEqual(
+    expect(
+      daCategoria(extrair(apurar(compras, [venda])), 'acoes-comum'),
+    ).toEqual(
       acoesEmOperacaoComum(30_000_00n, 8_000_00n, false, 1_200_00n),
     );
   });
@@ -170,7 +185,9 @@ describe('Apuração mensal: resultado da venda', () => {
       custosEmCentavos: 5_00n,
     });
 
-    expect(extrair(apurar(compras, [venda])).categorias).toEqual(
+    expect(
+      daCategoria(extrair(apurar(compras, [venda])), 'acoes-comum'),
+    ).toEqual(
       acoesEmOperacaoComum(30_000_00n, 7_995_00n, false, 1_199_25n),
     );
   });
@@ -182,9 +199,9 @@ describe('Apuração mensal: resultado da venda', () => {
       precoEmCentavos: 9_00n,
     });
 
-    expect(extrair(apurar(compras, [venda])).categorias).toEqual(
-      acoesEmOperacaoComum(27_000_00n, -6_000_00n, false, 0n),
-    );
+    expect(
+      daCategoria(extrair(apurar(compras, [venda])), 'acoes-comum'),
+    ).toEqual(acoesEmOperacaoComum(27_000_00n, -6_000_00n, false, 0n));
   });
 
   it('não tem resultado num mês só de compras', () => {
@@ -194,9 +211,9 @@ describe('Apuração mensal: resultado da venda', () => {
       precoEmCentavos: 13_00n,
     });
 
-    expect(extrair(apurar(compras, [compra])).categorias).toEqual(
-      acoesEmOperacaoComum(0n, 0n, true, 0n),
-    );
+    expect(
+      daCategoria(extrair(apurar(compras, [compra])), 'acoes-comum'),
+    ).toEqual(acoesEmOperacaoComum(0n, 0n, true, 0n));
   });
 
   it('devolve a carteira do fim do mês', () => {
@@ -319,5 +336,171 @@ describe('Apuração mensal: erros', () => {
     expect(() =>
       apurarMes(carteiraCom([compra]), [venda], comBdr),
     ).toThrow('Caso não tratado');
+  });
+});
+
+// #region day-trade-parcial
+describe('R5 · day trade · parcial, com posição anterior', () => {
+  const fevereiro = [
+    umaCompra({
+      ticker: 'VALE3',
+      data: '2026-02-10',
+      quantidade: 100,
+      precoEmCentavos: 60_00n,
+    }),
+  ];
+  const doDia = [
+    umaCompra({
+      ticker: 'VALE3',
+      data: '2026-03-16',
+      quantidade: 300,
+      precoEmCentavos: 62_00n,
+    }),
+    umaVenda({
+      ticker: 'VALE3',
+      data: '2026-03-16',
+      quantidade: 200,
+      precoEmCentavos: 63_50n,
+    }),
+  ];
+
+  it('apura R$ 300,00 de day trade e cobra 20%: R$ 60,00', () => {
+    const apuracao = extrair(apurar(fevereiro, doDia));
+
+    expect(daCategoria(apuracao, 'day-trade')).toEqual({
+      categoria: 'day-trade',
+      totalVendido: centavos(12_700_00n),
+      resultado: centavos(300_00n),
+      isenta: false,
+      imposto: centavos(60_00n),
+    });
+  });
+
+  it('deixa a posição com o custo de antes mais a compra que sobrou', () => {
+    const { carteira } = extrair(apurar(fevereiro, doDia));
+
+    expect(carteira.quantidadeDe(ticker('VALE3'))).toBe(200n);
+    expect(
+      carteira.precoMedioDe(ticker('VALE3'), 'meio-para-cima'),
+    ).toEqual(centavos(61_00n));
+  });
+});
+// #endregion
+
+describe('R5 · day trade · regras do mês', () => {
+  function dayTrade(
+    compra: bigint,
+    venda: bigint,
+    data = '2026-03-16',
+  ) {
+    return [
+      umaCompra({
+        ticker: 'VALE3',
+        data,
+        quantidade: 100,
+        precoEmCentavos: compra,
+      }),
+      umaVenda({
+        ticker: 'VALE3',
+        data,
+        quantidade: 100,
+        precoEmCentavos: venda,
+      }),
+    ];
+  }
+
+  it('cobra 20% mesmo de um day trade pequeno, sem isenção', () => {
+    const apuracao = extrair(apurar([], dayTrade(61_00n, 62_50n)));
+
+    expect(daCategoria(apuracao, 'day-trade')?.imposto).toEqual(
+      centavos(30_00n),
+    );
+  });
+
+  it('não cobra imposto de um prejuízo no day trade', () => {
+    const apuracao = extrair(apurar([], dayTrade(62_50n, 61_00n)));
+
+    expect(daCategoria(apuracao, 'day-trade')).toEqual({
+      categoria: 'day-trade',
+      totalVendido: centavos(6_100_00n),
+      resultado: centavos(-150_00n),
+      isenta: false,
+      imposto: centavos(0n),
+    });
+  });
+
+  it('não soma as vendas de day trade ao limite das ações', () => {
+    const compra = umaCompra({
+      data: '2026-02-02',
+      quantidade: 1_000,
+      precoEmCentavos: 15_00n,
+    });
+    const venda = umaVenda({
+      data: '2026-03-02',
+      quantidade: 1_000,
+      precoEmCentavos: 18_00n,
+    });
+    const grande = [
+      umaCompra({
+        ticker: 'VALE3',
+        data: '2026-03-16',
+        quantidade: 500,
+        precoEmCentavos: 61_00n,
+      }),
+      umaVenda({
+        ticker: 'VALE3',
+        data: '2026-03-16',
+        quantidade: 500,
+        precoEmCentavos: 62_00n,
+      }),
+    ];
+
+    const apuracao = extrair(apurar([compra], [venda, ...grande]));
+
+    expect(daCategoria(apuracao, 'acoes-comum')?.isenta).toBe(true);
+  });
+
+  it('devolve o erro de um negócio do dia que burlou o construtor', () => {
+    const precoZero = centavos(0n);
+    const intrusa = {
+      ...umaCompra({
+        ticker: 'VALE3',
+        data: '2026-03-16',
+        quantidade: 300,
+        precoEmCentavos: 1n,
+      }),
+      precoUnitario: precoZero,
+    } as Operacao;
+    const venda = umaVenda({
+      ticker: 'VALE3',
+      data: '2026-03-16',
+      quantidade: 200,
+      precoEmCentavos: 63_50n,
+    });
+
+    expect(apurar([], [intrusa, venda])).toEqual(
+      err({ tipo: 'preco-nao-positivo', precoUnitario: precoZero }),
+    );
+  });
+
+  it('recusa um day trade de ativo fora do catálogo', () => {
+    const fora = [
+      umaCompra({
+        ticker: 'BBAS3',
+        data: '2026-03-16',
+        quantidade: 100,
+        precoEmCentavos: 21_00n,
+      }),
+      umaVenda({
+        ticker: 'BBAS3',
+        data: '2026-03-16',
+        quantidade: 100,
+        precoEmCentavos: 22_00n,
+      }),
+    ];
+
+    expect(apurar([], fora)).toEqual(
+      err({ tipo: 'ativo-fora-do-catalogo', ticker: ticker('BBAS3') }),
+    );
   });
 });

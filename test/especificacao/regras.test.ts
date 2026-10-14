@@ -1,10 +1,6 @@
 import { describe, it } from 'vitest';
 
 // #region especificacao-regras
-describe('R5 · day trade · Capítulo 9', () => {
-  it.todo('tributa o lucro de day trade a 20%, sem isenção');
-});
-
 describe('R6 · venda de cotas de FII · Capítulo 9', () => {
   it.todo(
     'tributa o ganho na venda de cotas de FII a 20%, sem isenção',

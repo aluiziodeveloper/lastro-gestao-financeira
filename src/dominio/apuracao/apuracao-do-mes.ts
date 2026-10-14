@@ -3,12 +3,13 @@ import type { Carteira } from '../carteira.js';
 import type { Dinheiro } from '../dinheiro.js';
 import type { ErroDeCarteira } from '../erros.js';
 import type { Ticker } from '../ticker.js';
+import type { ErroDeSeparacao } from './pareamento.js';
 
 // #region apuracao-do-mes
 // O resultado de uma categoria no mês: o total vendido, o resultado
 // das vendas, positivo ou negativo, se o mês é isento e o imposto.
 export interface ResultadoDaCategoria {
-  readonly categoria: 'acoes-comum';
+  readonly categoria: 'acoes-comum' | 'day-trade';
   readonly totalVendido: Dinheiro;
   readonly resultado: Dinheiro;
   readonly isenta: boolean;
@@ -25,6 +26,7 @@ export interface ApuracaoDoMes {
 export type ErroDeApuracao =
   | ErroDeCarteira
   | ErroDeCatalogo
+  | ErroDeSeparacao
   | {
       readonly tipo: 'classe-ainda-nao-apurada';
       readonly classe: ClasseDeAtivo;

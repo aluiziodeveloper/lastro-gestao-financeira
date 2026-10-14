@@ -1,4 +1,3 @@
-import { Aliquota } from '../aliquota.js';
 import type { CatalogoDeAtivos } from '../ativo.js';
 import type { Carteira } from '../carteira.js';
 import { Dinheiro } from '../dinheiro.js';
@@ -8,45 +7,57 @@ import type {
   ApuracaoDoMes,
   ErroDeApuracao,
 } from './apuracao-do-mes.js';
-import { type Andamento, somarVenda } from './por-classe.js';
+import { separarDayTrade } from './day-trade.js';
+import {
+  acoesEmOperacaoComum,
+  type Andamento,
+  noDayTrade,
+  somarVenda,
+} from './por-classe.js';
 import { registrarNaCarteira } from './resultado-da-venda.js';
+import {
+  type ResultadoDoDayTrade,
+  resultadoDoDayTrade,
+} from './resultado-do-day-trade.js';
 
 const zero = Dinheiro.deCentavos(0n);
-const quinzePorCento = Aliquota.de(15n, 100n);
-
-// #region isencao-mensal
-// Ações em operação comum: se o total vendido no mês não passa de
-// R$ 20.000,00, o ganho do mês inteiro é isento; passou um centavo, o
-// ganho inteiro é tributável (Lei 11.033/2004, art. 3º, I).
-const limiteDeIsencao = Dinheiro.deCentavos(20_000_00n);
-// #endregion
 
 // #region apuracao-mensal
 // Serviço de domínio: a apuração não pertence à carteira nem ao
-// catálogo. Ela usa os dois, operação por operação, e aplica a lei.
+// catálogo. Ela separa o day trade, passa o resto pela carteira,
+// operação por operação, e aplica a lei a cada categoria.
 export function apurarMes(
   carteira: Carteira,
   operacoes: readonly Operacao[],
   catalogo: CatalogoDeAtivos,
 ): Result<ApuracaoDoMes, ErroDeApuracao> {
-  const fim = percorrer(carteira, operacoes, catalogo);
-  if (!fim.ok) {
-    return fim;
+  const separacao = separarDayTrade(operacoes);
+  if (!separacao.ok) {
+    return separacao;
   }
-  const { totalVendido, resultado } = fim.valor;
-  const isenta = !totalVendido.excede(limiteDeIsencao);
-  const imposto = isenta ? zero : quinzePorCento.sobreGanho(resultado);
+  const { comum, dayTrade } = separacao.valor;
+  return fechar(
+    percorrer(carteira, comum, catalogo),
+    resultadoDoDayTrade(dayTrade, catalogo),
+  );
+}
+
+function fechar(
+  comum: Result<Andamento, ErroDeApuracao>,
+  dayTrade: Result<ResultadoDoDayTrade, ErroDeApuracao>,
+): Result<ApuracaoDoMes, ErroDeApuracao> {
+  if (!comum.ok) {
+    return comum;
+  }
+  if (!dayTrade.ok) {
+    return dayTrade;
+  }
   return ok({
     categorias: [
-      {
-        categoria: 'acoes-comum',
-        totalVendido,
-        resultado,
-        isenta,
-        imposto,
-      },
+      acoesEmOperacaoComum(comum.valor),
+      noDayTrade(dayTrade.valor),
     ],
-    carteira: fim.valor.carteira,
+    carteira: comum.valor.carteira,
   });
 }
 // #endregion
