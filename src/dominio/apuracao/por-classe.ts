@@ -7,15 +7,23 @@ import { err, ok, type Result } from '../resultado.js';
 import type {
   ErroDeApuracao,
   ResultadoDaCategoria,
+  Totais,
 } from './apuracao-do-mes.js';
 import type { ResultadoDaVenda } from './resultado-da-venda.js';
-import type { ResultadoDoDayTrade } from './resultado-do-day-trade.js';
 
-// O que a apuração acumula enquanto percorre as operações do mês.
+const zero = Dinheiro.deCentavos(0n);
+const vazios: Totais = { totalVendido: zero, resultado: zero };
+
+// O que a apuração acumula enquanto percorre as operações comuns do
+// mês: a carteira e os totais de cada classe.
 export interface Andamento {
   readonly carteira: Carteira;
-  readonly totalVendido: Dinheiro;
-  readonly resultado: Dinheiro;
+  readonly acoes: Totais;
+  readonly fii: Totais;
+}
+
+export function andamentoInicial(carteira: Carteira): Andamento {
+  return { carteira, acoes: vazios, fii: vazios };
 }
 
 // #region apuracao-switch
@@ -32,8 +40,9 @@ export function somarVenda(
   }
   switch (classe.valor) {
     case 'acao':
-      return ok(somarAcao(andamento, venda));
+      return ok({ ...andamento, acoes: somar(andamento.acoes, venda) });
     case 'fii':
+      return ok({ ...andamento, fii: somar(andamento.fii, venda) });
     case 'etf':
       return err({
         tipo: 'classe-ainda-nao-apurada',
@@ -46,18 +55,16 @@ export function somarVenda(
 }
 // #endregion
 
-function somarAcao(
-  andamento: Andamento,
+function somar(
+  totais: Totais,
   { valorDeAlienacao, resultado }: ResultadoDaVenda,
-): Andamento {
+): Totais {
   return {
-    ...andamento,
-    totalVendido: andamento.totalVendido.somar(valorDeAlienacao),
-    resultado: andamento.resultado.somar(resultado),
+    totalVendido: totais.totalVendido.somar(valorDeAlienacao),
+    resultado: totais.resultado.somar(resultado),
   };
 }
 
-const zero = Dinheiro.deCentavos(0n);
 const quinzePorCento = Aliquota.de(15n, 100n);
 const vintePorCento = Aliquota.de(20n, 100n);
 
@@ -68,10 +75,21 @@ const vintePorCento = Aliquota.de(20n, 100n);
 const limiteDeIsencao = Dinheiro.deCentavos(20_000_00n);
 // #endregion
 
-export function acoesEmOperacaoComum({
+export function categoriasDoMes(
+  { acoes, fii }: Andamento,
+  dayTrade: Totais,
+): ResultadoDaCategoria[] {
+  return [
+    acoesEmOperacaoComum(acoes),
+    tributada('day-trade', dayTrade, vintePorCento),
+    tributada('fii', fii, vintePorCento),
+  ];
+}
+
+function acoesEmOperacaoComum({
   totalVendido,
   resultado,
-}: Andamento): ResultadoDaCategoria {
+}: Totais): ResultadoDaCategoria {
   const isenta = !totalVendido.excede(limiteDeIsencao);
   const imposto = isenta ? zero : quinzePorCento.sobreGanho(resultado);
   return {
@@ -83,17 +101,18 @@ export function acoesEmOperacaoComum({
   };
 }
 
-// Day trade: 20% sobre o resultado do mês, sem isenção (IN RFB
-// 1.585/2015, art. 65, § 11; art. 59, § 2º, I).
-export function noDayTrade({
-  totalVendido,
-  resultado,
-}: ResultadoDoDayTrade): ResultadoDaCategoria {
+// Day trade e FII: 20% sobre o resultado do mês, sem isenção (IN RFB
+// 1.585/2015, art. 65, § 11, e art. 37; art. 59, § 2º, I).
+function tributada(
+  categoria: 'day-trade' | 'fii',
+  { totalVendido, resultado }: Totais,
+  aliquota: Aliquota,
+): ResultadoDaCategoria {
   return {
-    categoria: 'day-trade',
+    categoria,
     totalVendido,
     resultado,
     isenta: false,
-    imposto: vintePorCento.sobreGanho(resultado),
+    imposto: aliquota.sobreGanho(resultado),
   };
 }

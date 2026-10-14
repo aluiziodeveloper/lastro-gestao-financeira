@@ -2,20 +2,16 @@ import type { CatalogoDeAtivos, ErroDeCatalogo } from '../ativo.js';
 import { Dinheiro } from '../dinheiro.js';
 import { type Operacao, valorBrutoDaOperacao } from '../operacao.js';
 import { ok, type Result } from '../resultado.js';
+import type { Totais } from './apuracao-do-mes.js';
 
 // #region resultado-do-day-trade
 // O day trade não passa pela carteira: o resultado sai dos próprios
 // negócios do dia, as vendas menos as compras, com os custos de cada
 // lado (IN RFB 1.585/2015, art. 65).
-export interface ResultadoDoDayTrade {
-  readonly totalVendido: Dinheiro;
-  readonly resultado: Dinheiro;
-}
-
 export function resultadoDoDayTrade(
   operacoes: readonly Operacao[],
   catalogo: CatalogoDeAtivos,
-): Result<ResultadoDoDayTrade, ErroDeCatalogo> {
+): Result<Totais, ErroDeCatalogo> {
   const foraDoCatalogo = operacoes
     .map((operacao) => catalogo.classeDe(operacao.ticker))
     .find((classe) => !classe.ok);
@@ -30,9 +26,9 @@ export function resultadoDoDayTrade(
 // #endregion
 
 function somar(
-  { totalVendido, resultado }: ResultadoDoDayTrade,
+  { totalVendido, resultado }: Totais,
   operacao: Operacao,
-): ResultadoDoDayTrade {
+): Totais {
   const valor = valorBrutoDaOperacao(
     operacao.precoUnitario,
     operacao.quantidade,

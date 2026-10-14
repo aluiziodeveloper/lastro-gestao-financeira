@@ -1,12 +1,6 @@
 import { describe, it } from 'vitest';
 
 // #region especificacao-regras
-describe('R6 · venda de cotas de FII · Capítulo 9', () => {
-  it.todo(
-    'tributa o ganho na venda de cotas de FII a 20%, sem isenção',
-  );
-});
-
 describe('R7 · rendimentos de FII · Capítulo 10', () => {
   it.todo('isenta rendimentos de FII que cumprem os requisitos legais');
 });

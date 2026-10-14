@@ -1,26 +1,21 @@
 import type { CatalogoDeAtivos } from '../ativo.js';
 import type { Carteira } from '../carteira.js';
-import { Dinheiro } from '../dinheiro.js';
 import type { Operacao } from '../operacao.js';
 import { ok, type Result } from '../resultado.js';
 import type {
   ApuracaoDoMes,
   ErroDeApuracao,
+  Totais,
 } from './apuracao-do-mes.js';
 import { separarDayTrade } from './day-trade.js';
 import {
-  acoesEmOperacaoComum,
   type Andamento,
-  noDayTrade,
+  andamentoInicial,
+  categoriasDoMes,
   somarVenda,
 } from './por-classe.js';
 import { registrarNaCarteira } from './resultado-da-venda.js';
-import {
-  type ResultadoDoDayTrade,
-  resultadoDoDayTrade,
-} from './resultado-do-day-trade.js';
-
-const zero = Dinheiro.deCentavos(0n);
+import { resultadoDoDayTrade } from './resultado-do-day-trade.js';
 
 // #region apuracao-mensal
 // Serviço de domínio: a apuração não pertence à carteira nem ao
@@ -44,7 +39,7 @@ export function apurarMes(
 
 function fechar(
   comum: Result<Andamento, ErroDeApuracao>,
-  dayTrade: Result<ResultadoDoDayTrade, ErroDeApuracao>,
+  dayTrade: Result<Totais, ErroDeApuracao>,
 ): Result<ApuracaoDoMes, ErroDeApuracao> {
   if (!comum.ok) {
     return comum;
@@ -53,10 +48,7 @@ function fechar(
     return dayTrade;
   }
   return ok({
-    categorias: [
-      acoesEmOperacaoComum(comum.valor),
-      noDayTrade(dayTrade.valor),
-    ],
+    categorias: categoriasDoMes(comum.valor, dayTrade.valor),
     carteira: comum.valor.carteira,
   });
 }
@@ -67,11 +59,9 @@ function percorrer(
   operacoes: readonly Operacao[],
   catalogo: CatalogoDeAtivos,
 ): Result<Andamento, ErroDeApuracao> {
-  const inicio: Result<Andamento, ErroDeApuracao> = ok({
-    carteira,
-    totalVendido: zero,
-    resultado: zero,
-  });
+  const inicio: Result<Andamento, ErroDeApuracao> = ok(
+    andamentoInicial(carteira),
+  );
   return operacoes.reduce(
     (andamento, operacao) =>
       andamento.ok

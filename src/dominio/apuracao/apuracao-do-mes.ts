@@ -6,10 +6,17 @@ import type { Ticker } from '../ticker.js';
 import type { ErroDeSeparacao } from './pareamento.js';
 
 // #region apuracao-do-mes
+// O que se soma de cada venda de uma categoria: o valor de alienação e
+// o resultado, positivo ou negativo.
+export interface Totais {
+  readonly totalVendido: Dinheiro;
+  readonly resultado: Dinheiro;
+}
+
 // O resultado de uma categoria no mês: o total vendido, o resultado
 // das vendas, positivo ou negativo, se o mês é isento e o imposto.
 export interface ResultadoDaCategoria {
-  readonly categoria: 'acoes-comum' | 'day-trade';
+  readonly categoria: 'acoes-comum' | 'day-trade' | 'fii';
   readonly totalVendido: Dinheiro;
   readonly resultado: Dinheiro;
   readonly isenta: boolean;

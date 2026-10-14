@@ -30,7 +30,8 @@ const catalogo = CatalogoDeAtivos.vazio()
   .com(ticker('PETR4'), 'acao')
   .com(ticker('VALE3'), 'acao')
   .com(ticker('ITUB4'), 'acao')
-  .com(ticker('HGLG11'), 'fii');
+  .com(ticker('HGLG11'), 'fii')
+  .com(ticker('BOVA11'), 'etf');
 
 function carteiraCom(operacoes: readonly Operacao[]): Carteira {
   return operacoes.reduce(
@@ -277,25 +278,25 @@ describe('Apuração mensal: erros', () => {
     );
   });
 
-  it('recusa, por enquanto, a venda de cotas de FII', () => {
+  it('recusa, por enquanto, a venda de ETF', () => {
     const compra = umaCompra({
-      ticker: 'HGLG11',
+      ticker: 'BOVA11',
       data: '2026-02-02',
       quantidade: 10,
-      precoEmCentavos: 150_00n,
+      precoEmCentavos: 125_00n,
     });
     const venda = umaVenda({
-      ticker: 'HGLG11',
+      ticker: 'BOVA11',
       data: '2026-03-02',
       quantidade: 10,
-      precoEmCentavos: 160_00n,
+      precoEmCentavos: 130_00n,
     });
 
     expect(apurar([compra], [venda])).toEqual(
       err({
         tipo: 'classe-ainda-nao-apurada',
-        classe: 'fii',
-        ticker: ticker('HGLG11'),
+        classe: 'etf',
+        ticker: ticker('BOVA11'),
       }),
     );
   });
@@ -503,4 +504,62 @@ describe('R5 · day trade · regras do mês', () => {
       err({ tipo: 'ativo-fora-do-catalogo', ticker: ticker('BBAS3') }),
     );
   });
+});
+
+describe('R6 · venda de cotas de FII', () => {
+  const compraDeFii = umaCompra({
+    ticker: 'HGLG11',
+    data: '2026-02-10',
+    quantidade: 100,
+    precoEmCentavos: 150_00n,
+  });
+
+  it('cobra 20% sobre o ganho, sem isenção mesmo numa venda pequena', () => {
+    const venda = umaVenda({
+      ticker: 'HGLG11',
+      data: '2026-03-12',
+      quantidade: 10,
+      precoEmCentavos: 160_00n,
+    });
+
+    expect(
+      daCategoria(extrair(apurar([compraDeFii], [venda])), 'fii'),
+    ).toEqual({
+      categoria: 'fii',
+      totalVendido: centavos(1_600_00n),
+      resultado: centavos(100_00n),
+      isenta: false,
+      imposto: centavos(20_00n),
+    });
+  });
+
+  // #region fii-fora-do-limite
+  it('não soma as vendas de FII ao limite das ações', () => {
+    const compraDeAcoes = umaCompra({
+      data: '2026-02-10',
+      quantidade: 1_000,
+      precoEmCentavos: 15_00n,
+    });
+    const vendaDeAcoes = umaVenda({
+      data: '2026-03-02',
+      quantidade: 1_000,
+      precoEmCentavos: 18_00n,
+    });
+    const vendaDeFii = umaVenda({
+      ticker: 'HGLG11',
+      data: '2026-03-12',
+      quantidade: 100,
+      precoEmCentavos: 160_00n,
+    });
+
+    const apuracao = extrair(
+      apurar([compraDeAcoes, compraDeFii], [vendaDeAcoes, vendaDeFii]),
+    );
+
+    expect(daCategoria(apuracao, 'acoes-comum')?.isenta).toBe(true);
+    expect(daCategoria(apuracao, 'fii')?.imposto).toEqual(
+      centavos(200_00n),
+    );
+  });
+  // #endregion
 });
