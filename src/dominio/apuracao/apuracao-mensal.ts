@@ -7,20 +7,20 @@ import type {
   ErroDeApuracao,
   Totais,
 } from './apuracao-do-mes.js';
+import { categoriasDoMes } from './categorias.js';
 import { separarDayTrade } from './day-trade.js';
 import {
   type Andamento,
-  andamentoInicial,
-  categoriasDoMes,
-  somarVenda,
-} from './por-classe.js';
-import { registrarNaCarteira } from './resultado-da-venda.js';
+  type Lancamento,
+  percorrer,
+  totaisDe,
+} from './lancamentos.js';
 import { resultadoDoDayTrade } from './resultado-do-day-trade.js';
 
 // #region apuracao-mensal
 // Serviço de domínio: a apuração não pertence à carteira nem ao
-// catálogo. Ela separa o day trade, passa o resto pela carteira,
-// operação por operação, e aplica a lei a cada categoria.
+// catálogo. Ela separa o day trade, passa o resto pela carteira e
+// entrega a cada categoria os totais que são dela.
 export function apurarMes(
   carteira: Carteira,
   operacoes: readonly Operacao[],
@@ -47,42 +47,15 @@ function fechar(
   if (!dayTrade.ok) {
     return dayTrade;
   }
+  const lancamentos: readonly Lancamento[] = [
+    ...comum.valor.lancamentos,
+    { categoria: 'day-trade', ...dayTrade.valor },
+  ];
   return ok({
-    categorias: categoriasDoMes(comum.valor, dayTrade.valor),
+    categorias: categoriasDoMes.map((categoria) =>
+      categoria.apurar(totaisDe(categoria.nome, lancamentos)),
+    ),
     carteira: comum.valor.carteira,
   });
 }
 // #endregion
-
-function percorrer(
-  carteira: Carteira,
-  operacoes: readonly Operacao[],
-  catalogo: CatalogoDeAtivos,
-): Result<Andamento, ErroDeApuracao> {
-  const inicio: Result<Andamento, ErroDeApuracao> = ok(
-    andamentoInicial(carteira),
-  );
-  return operacoes.reduce(
-    (andamento, operacao) =>
-      andamento.ok
-        ? registrar(andamento.valor, operacao, catalogo)
-        : andamento,
-    inicio,
-  );
-}
-
-function registrar(
-  andamento: Andamento,
-  operacao: Operacao,
-  catalogo: CatalogoDeAtivos,
-): Result<Andamento, ErroDeApuracao> {
-  const registro = registrarNaCarteira(andamento.carteira, operacao);
-  if (!registro.ok) {
-    return registro;
-  }
-  const { carteira, venda } = registro.valor;
-  if (venda === undefined) {
-    return ok({ ...andamento, carteira });
-  }
-  return somarVenda({ ...andamento, carteira }, venda, catalogo);
-}

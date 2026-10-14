@@ -12,10 +12,13 @@ export interface Totais {
   readonly resultado: Dinheiro;
 }
 
+export type NomeDaCategoria =
+  'acoes-comum' | 'day-trade' | 'fii' | 'etf';
+
 // O resultado de uma categoria no mês: o total vendido, o resultado
 // das vendas, positivo ou negativo, se o mês é isento e o imposto.
 export interface ResultadoDaCategoria {
-  readonly categoria: 'acoes-comum' | 'day-trade' | 'fii' | 'etf';
+  readonly categoria: NomeDaCategoria;
   readonly totalVendido: Dinheiro;
   readonly resultado: Dinheiro;
   readonly isenta: boolean;
