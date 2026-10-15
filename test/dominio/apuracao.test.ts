@@ -354,7 +354,7 @@ describe('R5 · day trade · parcial, com posição anterior', () => {
     });
   });
 
-  it('deixa a posição com o custo de antes mais a compra que sobrou', () => {
+  it('deixa o custo de antes mais o da compra que sobrou', () => {
     const { carteira } = extrair(apurar(fevereiro, doDia));
 
     expect(carteira.quantidadeDe(ticker('VALE3'))).toBe(200n);

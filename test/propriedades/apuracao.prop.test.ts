@@ -46,7 +46,7 @@ describe('R4 · isenção de R$ 20 mil · propriedades', () => {
     );
   });
 
-  it('acima do limite, cobra o mesmo, seja um centavo ou um milhão', () => {
+  it('acima do limite, o imposto não depende do total vendido', () => {
     fc.assert(
       fc.property(
         acimaDoLimite,

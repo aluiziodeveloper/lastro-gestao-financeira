@@ -23,7 +23,7 @@ describe('Aliquota', () => {
     );
   });
 
-  it('arredonda para baixo antes do meio: 15% de R$ 0,09 dá R$ 0,01', () => {
+  it('arredonda para baixo: 15% de R$ 0,09 dá R$ 0,01', () => {
     expect(quinzePorCento.sobreGanho(centavos(9n))).toEqual(
       centavos(1n),
     );
