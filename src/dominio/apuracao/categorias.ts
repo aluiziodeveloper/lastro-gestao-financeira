@@ -17,7 +17,7 @@ const vintePorCento = Aliquota.de(20n, 100n);
 // Ações em operação comum: se o total vendido no mês não passa de
 // R$ 20.000,00, o ganho do mês inteiro é isento; passou um centavo, o
 // ganho inteiro é tributável (Lei 11.033/2004, art. 3º, I).
-const limiteDeIsencao = Dinheiro.deCentavos(20_000_00n);
+export const limiteDeIsencao = Dinheiro.deCentavos(20_000_00n);
 // #endregion
 
 // #region categorias
