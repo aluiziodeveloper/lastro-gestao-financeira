@@ -51,11 +51,6 @@ export class MesDeApuracao implements ObjetoDeValor<MesDeApuracao> {
     return this.#contagem() === anterior.#contagem() + 1;
   }
 
-  // O último mês do ano, em que saldos anuais se encerram.
-  ehDezembro(): boolean {
-    return this.#primeiroDia.slice(5, 7) === '12';
-  }
-
   // Os meses contados desde o ano zero.
   #contagem(): number {
     const ano = Number(this.#primeiroDia.slice(0, 4));
@@ -63,6 +58,26 @@ export class MesDeApuracao implements ObjetoDeValor<MesDeApuracao> {
     return ano * 12 + mes;
   }
   // #endregion
+
+  // #region mes-dias
+  // Os dias do mês, do primeiro ao último. Das 31 datas candidatas,
+  // ficam as que existem no calendário: 28 a 31, conforme o mês.
+  dias(): readonly DataDoCalendario[] {
+    const anoEMes = this.#primeiroDia.slice(0, 8);
+    return Array.from({ length: 31 }, (_, indice) =>
+      criarDataDoCalendario(
+        anoEMes + String(indice + 1).padStart(2, '0'),
+      ),
+    )
+      .filter((data) => data.ok)
+      .map((data) => data.valor);
+  }
+  // #endregion
+
+  // O último mês do ano, em que saldos anuais se encerram.
+  ehDezembro(): boolean {
+    return this.#primeiroDia.slice(5, 7) === '12';
+  }
 
   equivaleA(outro: MesDeApuracao): boolean {
     return this.#primeiroDia === outro.#primeiroDia;

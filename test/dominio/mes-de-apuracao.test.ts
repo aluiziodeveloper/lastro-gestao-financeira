@@ -83,3 +83,18 @@ describe('MesDeApuracao: dezembro', () => {
     expect(mes(texto).ehDezembro()).toBe(esperado);
   });
 });
+
+describe('MesDeApuracao: os dias do mês', () => {
+  it.each([
+    ['2026-02', 28, '2026-02-28'],
+    ['2024-02', 29, '2024-02-29'],
+    ['2026-04', 30, '2026-04-30'],
+    ['2026-03', 31, '2026-03-31'],
+  ])('%s tem %s dias, até %s', (texto, quantos, ultimo) => {
+    const dias = mes(texto).dias();
+
+    expect(dias.length).toBe(quantos);
+    expect(dias[0]).toBe(`${texto}-01`);
+    expect(dias[quantos - 1]).toBe(ultimo);
+  });
+});
