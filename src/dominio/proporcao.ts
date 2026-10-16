@@ -1,3 +1,4 @@
+import type { ModoDeArredondamento } from './arredondamento.js';
 import { inspecionar, type ObjetoDeValor } from './objeto-de-valor.js';
 import { Dinheiro } from './dinheiro.js';
 import { FracaoDeAcao } from './fracao-de-acao.js';
@@ -12,6 +13,14 @@ export interface Repartida {
   readonly custo: Dinheiro;
   readonly fracao: FracaoDeAcao | undefined;
 }
+// #endregion
+
+// #region proporcao-politica
+// A lei não fixa o arredondamento do custo das ações inteiras de um
+// evento; o Lastro arredonda meio para cima, e a fração leva o resto,
+// de modo que o custo total se conserva. Vai ao contador (X02).
+const arredondamentoDasInteiras: ModoDeArredondamento =
+  'meio-para-cima';
 // #endregion
 
 // #region proporcao-classe
@@ -60,7 +69,7 @@ export class Proporcao implements ObjetoDeValor<Proporcao> {
       ? custo
           .multiplicarPor(novas.valor)
           .multiplicarPor(this.#de)
-          .dividirPor(todas.valor, 'meio-para-cima')
+          .dividirPor(todas.valor, arredondamentoDasInteiras)
       : Dinheiro.deCentavos(0n);
     const resto = total % de;
     const fracao =

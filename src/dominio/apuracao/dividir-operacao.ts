@@ -1,3 +1,4 @@
+import type { ModoDeArredondamento } from '../arredondamento.js';
 import type { Dinheiro } from '../dinheiro.js';
 import type { ErroDeOperacao } from '../erros.js';
 import { criarCompra, criarVenda, type Operacao } from '../operacao.js';
@@ -8,8 +9,8 @@ export type ErroDeSeparacao = ErroDeOperacao | ErroDeQuantidade;
 
 // #region dividir-operacao
 // Divide um negócio em dois. Os custos vão na proporção da quantidade
-// (IN RFB 1.585/2015, art. 56, § 4º): a parte arredonda meio para cima,
-// e o resto leva a diferença.
+// (IN RFB 1.585/2015, art. 56, § 4º): a parte arredonda pela política
+// do rateio, e o resto leva a diferença.
 export function dividir(
   operacao: Operacao,
   quantidade: bigint,
@@ -23,6 +24,10 @@ export function dividir(
 }
 // #endregion
 
+// A lei manda ratear, mas não diz como arredondar a parte; o Lastro
+// arredonda meio para cima, e o resto conserva o total.
+const arredondamentoDoRateio: ModoDeArredondamento = 'meio-para-cima';
+
 function custosDaParte(
   operacao: Operacao,
   quantidade: bigint,
@@ -30,7 +35,7 @@ function custosDaParte(
   return operacao.custos.multiplicarPorFracao(
     quantidade,
     operacao.quantidade.paraBigInt(),
-    'meio-para-cima',
+    arredondamentoDoRateio,
   );
 }
 

@@ -5,6 +5,7 @@ import { Dinheiro } from '../../src/dominio/dinheiro.js';
 import type { Operacao } from '../../src/dominio/operacao.js';
 import type { Quantidade } from '../../src/dominio/quantidade.js';
 import { err, ok } from '../../src/dominio/resultado.js';
+import { extrair } from '../apoio/resultado.js';
 import { umaCompra, umaVenda } from './construtores.js';
 
 const dia = '2026-03-16';
@@ -228,6 +229,30 @@ describe('R5 · day trade · pareamento', () => {
       }),
     );
   });
+
+  // #region rateio-no-meio-do-centavo
+  // Metade de 5 centavos são 2,5: meio para cima dá 3 ao day trade;
+  // meio-par e truncar dariam 2.
+  it('reparte meio para cima o centavo que cai no meio', () => {
+    const compra = umaCompra({
+      data: dia,
+      quantidade: 2,
+      precoEmCentavos: 10_00n,
+      custosEmCentavos: 5n,
+    });
+    const venda = umaVenda({
+      data: dia,
+      quantidade: 1,
+      precoEmCentavos: 11_00n,
+    });
+
+    const [parteDaCompra] = extrair(
+      separarDayTrade([compra, venda]),
+    ).dayTrade;
+
+    expect(parteDaCompra?.custos).toEqual(Dinheiro.deCentavos(3n));
+  });
+  // #endregion
 
   it('deixa tudo como operação comum num dia sem venda', () => {
     const compras = [

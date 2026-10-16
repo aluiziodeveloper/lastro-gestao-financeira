@@ -136,6 +136,25 @@ describe('R1 · preço médio', () => {
       );
     });
 
+    // #region baixa-no-meio-do-centavo
+    // A política da baixa no meio exato: metade de R$ 10,01 são 500,5
+    // centavos. Meio para cima baixa R$ 5,01; meio-par e truncar
+    // baixariam R$ 5,00.
+    it('baixa meio para cima o custo no meio do centavo', () => {
+      const posicao = extrair(
+        Posicao.abrir(
+          umaCompra({
+            quantidade: 2,
+            precoEmCentavos: 5_00n,
+            custosEmCentavos: 1n,
+          }),
+        ).vender(umaVenda({ quantidade: 1, precoEmCentavos: 6_00n })),
+      );
+
+      expect(posicao.custoTotal()).toEqual(Dinheiro.deCentavos(5_00n));
+    });
+    // #endregion
+
     it('recusa vender mais que a quantidade em carteira', () => {
       const posicao = Posicao.abrir(
         umaCompra({ quantidade: 100, precoEmCentavos: 36_20n }),

@@ -1,4 +1,4 @@
-import type { Aliquota } from '../aliquota.js';
+import { type Aliquota, arredondamentoDoImposto } from '../aliquota.js';
 import { Dinheiro } from '../dinheiro.js';
 import {
   grupoDaCategoria,
@@ -67,7 +67,7 @@ function apurarComAs(
     ganho,
   );
   const base = ganho.subtrair(compensado);
-  const imposto = aliquota.sobreGanho(base);
+  const imposto = aliquota.sobreGanho(base, arredondamentoDoImposto);
   return {
     apurado: {
       categoria: nome,

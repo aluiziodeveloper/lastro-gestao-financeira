@@ -1,4 +1,7 @@
-import type { Aliquota } from '../aliquota.js';
+import {
+  type Aliquota,
+  arredondamentoDaRetencao,
+} from '../aliquota.js';
 import { Dinheiro } from '../dinheiro.js';
 import type { Provento, TratamentoDoProvento } from './provento.js';
 
@@ -19,7 +22,10 @@ export function exclusivoNaFonte(
   provento: Provento,
   aliquota: Aliquota,
 ): TratamentoDoProvento {
-  const retido = aliquota.sobre(provento.bruto);
+  const retido = aliquota.sobre(
+    provento.bruto,
+    arredondamentoDaRetencao,
+  );
   return {
     provento,
     tratamento: 'exclusivo-na-fonte',

@@ -1,3 +1,4 @@
+import { arredondamentoDaRetencao } from '../aliquota.js';
 import type { MesDeApuracao } from '../apuracao/mes-de-apuracao.js';
 import type { CatalogoDeAtivos, ErroDeCatalogo } from '../ativo.js';
 import type { DadosDeReferencia } from '../dados-de-referencia.js';
@@ -60,7 +61,9 @@ function retencoes(
   return [...somas].map(([emissor, total]) => ({
     emissor,
     total,
-    retido: total.excede(limiteMensal) ? aliquota.sobre(total) : zero,
+    retido: total.excede(limiteMensal)
+      ? aliquota.sobre(total, arredondamentoDaRetencao)
+      : zero,
   }));
 }
 // #endregion

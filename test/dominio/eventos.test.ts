@@ -199,9 +199,10 @@ describe('R3 · frações de ação', () => {
   // #endregion
 
   // #region eventos-arredondamento
-  // Caracteriza a política atual até o Capítulo 11: as ações inteiras
-  // levam o custo arredondado meio para cima, e a fração, o resto. O
-  // Stryker não gera a troca de modo que o Capítulo 7 fez à mão.
+  // A política decidida no Capítulo 11, arredondamentoDasInteiras: as
+  // ações inteiras levam o custo arredondado meio para cima, e a
+  // fração, o resto. O Stryker não gera a troca de modo que o Capítulo
+  // 7 fez à mão.
   it('arredonda meio para cima o custo das ações inteiras', () => {
     const carteira = extrair(
       carteiraCom(1).aplicar(criarDesdobramento(evento(3, 7))),

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { criarDataDoCalendario } from '../../src/dominio/data-do-calendario.js';
+import { arredondamentoDoImposto } from '../../src/dominio/aliquota.js';
 import { Dinheiro } from '../../src/dominio/dinheiro.js';
 import { definicoesDoLastro } from '../../src/dominio/regime/regimes.js';
 import { RegimesTributarios } from '../../src/dominio/regime/regimes-tributarios.js';
@@ -16,6 +17,7 @@ function peloLastro(mes: string): Dinheiro {
   const { apuracao } = extrair(regimes.vigenteEm(data));
   return apuracao['acoes-comum'].aliquota.sobreGanho(
     Dinheiro.deCentavos(lucro),
+    arredondamentoDoImposto,
   );
 }
 
