@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import type { CategoriaDeApuracao } from '../../src/dominio/apuracao/categoria.js';
 import { categoriasDo } from '../../src/dominio/apuracao/categorias.js';
 import { Dinheiro } from '../../src/dominio/dinheiro.js';
+import { PrejuizoAcumulado } from '../../src/dominio/prejuizo/prejuizo-acumulado.js';
 import { regrasEm } from '../dominio/referencias.js';
 
 const umValor = (min: bigint, max: bigint) =>
@@ -30,7 +31,10 @@ function categoriaDeAcoes(): CategoriaDeApuracao {
 const acoes = categoriaDeAcoes();
 
 function impostoDeAcoes(totalVendido: Dinheiro, resultado: Dinheiro) {
-  return acoes.apurar({ totalVendido, resultado }).imposto;
+  return acoes.apurar(
+    { totalVendido, resultado },
+    PrejuizoAcumulado.nenhum(),
+  ).apurado.imposto;
 }
 
 // #region prop-limiar

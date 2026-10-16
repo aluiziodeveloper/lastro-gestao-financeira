@@ -58,3 +58,18 @@ describe('MesDeApuracao', () => {
     expect(mes('2026-03').contem(data)).toBe(esperado);
   });
 });
+
+// #region mes-seguinte-teste
+describe('MesDeApuracao: o mês seguinte', () => {
+  it.each([
+    ['2026-02', '2026-01', true, 'fevereiro depois de janeiro'],
+    ['2027-01', '2026-12', true, 'janeiro depois de dezembro'],
+    ['2026-01', '2026-01', false, 'o mesmo mês'],
+    ['2026-03', '2026-01', false, 'depois de uma lacuna'],
+    ['2026-01', '2026-02', false, 'antes do anterior'],
+    ['2027-12', '2026-12', false, 'o mesmo mês de outro ano'],
+  ])('%s segue %s: %s (%s)', (texto, anterior, esperado) => {
+    expect(mes(texto).ehSeguinteDe(mes(anterior))).toBe(esperado);
+  });
+});
+// #endregion

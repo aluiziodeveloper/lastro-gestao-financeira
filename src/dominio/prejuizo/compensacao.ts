@@ -1,62 +1,62 @@
 import type {
-  NomeDaCategoria,
   ResultadoDaCategoria,
+  Totais,
 } from '../apuracao/apuracao-do-mes.js';
-import { Dinheiro } from '../dinheiro.js';
+import type { CategoriaDeApuracao } from '../apuracao/categoria.js';
+import { type Lancamento, totaisDe } from '../apuracao/lancamentos.js';
 import {
   grupoDaCategoria,
   type PrejuizoAcumulado,
 } from './prejuizo-acumulado.js';
 
 // #region compensacao
-// A base tributável de uma categoria: o ganho do mês menos o prejuízo
-// que o grupo dela compensou.
-export interface BaseDaCategoria {
-  readonly categoria: NomeDaCategoria;
-  readonly compensado: Dinheiro;
-  readonly base: Dinheiro;
-}
-
+// As categorias do mês, apuradas, e o prejuízo que fica para o mês
+// seguinte.
 export interface Compensacao {
-  readonly bases: readonly BaseDaCategoria[];
+  readonly categorias: readonly ResultadoDaCategoria[];
   readonly prejuizo: PrejuizoAcumulado;
 }
 
-// As perdas do mês entram no saldo do grupo antes dos ganhos, inclusive
-// as de um mês isento (IN RFB 1.585/2015, art. 59, § 1º). Depois, cada
-// ganho tributável abate o saldo do próprio grupo, na ordem das
-// categorias: no grupo comum, ações e então ETF.
+// As perdas do mês entram no saldo do grupo antes dos ganhos,
+// inclusive as de um mês isento (IN RFB 1.585/2015, art. 59, § 1º).
+// Depois, cada categoria apura com o saldo do próprio grupo, na ordem
+// das categorias: no grupo comum, ações e então ETF.
 export function compensar(
-  resultados: readonly ResultadoDaCategoria[],
+  categorias: readonly CategoriaDeApuracao[],
+  lancamentos: readonly Lancamento[],
   anterior: PrejuizoAcumulado,
 ): Compensacao {
-  const comAsPerdas = resultados.reduce(
-    (prejuizo, { categoria, resultado }) =>
-      prejuizo.acumular(grupoDaCategoria[categoria], resultado),
+  const doMes = categorias.map((categoria) => ({
+    categoria,
+    totais: totaisDe(categoria.nome, lancamentos),
+  }));
+  const comAsPerdas = doMes.reduce(
+    (prejuizo, { categoria, totais }) =>
+      prejuizo.acumular(
+        grupoDaCategoria[categoria.nome],
+        totais.resultado,
+      ),
     anterior,
   );
-  return resultados.reduce(abaterGanho, {
-    bases: [],
+  return doMes.reduce(apurarComOSaldo, {
+    categorias: [],
     prejuizo: comAsPerdas,
   });
 }
 
-const zero = Dinheiro.deCentavos(0n);
+interface CategoriaDoMes {
+  readonly categoria: CategoriaDeApuracao;
+  readonly totais: Totais;
+}
 
-// O ganho isento não consome prejuízo: não há imposto a reduzir.
-function abaterGanho(
-  { bases, prejuizo }: Compensacao,
-  { categoria, resultado, isenta }: ResultadoDaCategoria,
+function apurarComOSaldo(
+  { categorias, prejuizo }: Compensacao,
+  { categoria, totais }: CategoriaDoMes,
 ): Compensacao {
-  const ganho = isenta || !resultado.ehPositivo() ? zero : resultado;
-  const { compensado, prejuizo: seguinte } = prejuizo.compensar(
-    grupoDaCategoria[categoria],
-    ganho,
+  const { apurado, prejuizo: seguinte } = categoria.apurar(
+    totais,
+    prejuizo,
   );
-  const base = ganho.subtrair(compensado);
-  return {
-    bases: [...bases, { categoria, compensado, base }],
-    prejuizo: seguinte,
-  };
+  return { categorias: [...categorias, apurado], prejuizo: seguinte };
 }
 // #endregion

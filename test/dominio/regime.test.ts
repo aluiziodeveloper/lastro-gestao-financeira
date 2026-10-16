@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { Aliquota } from '../../src/dominio/aliquota.js';
 import { apurarMes } from '../../src/dominio/apuracao/apuracao-mensal.js';
+import { estadoInicial } from '../../src/dominio/apuracao/estado-da-apuracao.js';
 import { CatalogoDeAtivos } from '../../src/dominio/ativo.js';
 import { Carteira } from '../../src/dominio/carteira.js';
 import { criarDataDoCalendario } from '../../src/dominio/data-do-calendario.js';
@@ -90,10 +91,15 @@ function carteiraCom(operacoes: readonly Operacao[]): Carteira {
 function impostoDaCena(ano: string, regimes: RegimesTributarios) {
   const { antes, doMes } = cenaEm(ano);
   const apuracao = extrair(
-    apurarMes(mes(`${ano}-03`), carteiraCom(antes), doMes, {
-      catalogo,
-      regimes,
-    }),
+    apurarMes(
+      mes(`${ano}-03`),
+      estadoInicial(carteiraCom(antes)),
+      doMes,
+      {
+        catalogo,
+        regimes,
+      },
+    ),
   );
   const [acoes] = apuracao.categorias;
   return acoes?.imposto;
@@ -105,7 +111,12 @@ describe('Antes e depois das viradas de 2024 e de 2026', () => {
 
   it('dezembro de 2023 não tem regime; janeiro de 2024 tem', () => {
     const apurar = (texto: string) =>
-      apurarMes(mes(texto), carteiraCom([]), [], referencias).ok;
+      apurarMes(
+        mes(texto),
+        estadoInicial(carteiraCom([])),
+        [],
+        referencias,
+      ).ok;
 
     expect([apurar('2023-12'), apurar('2024-01')]).toEqual([
       false,

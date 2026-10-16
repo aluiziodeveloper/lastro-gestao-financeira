@@ -44,6 +44,21 @@ export class MesDeApuracao implements ObjetoDeValor<MesDeApuracao> {
     return data.slice(0, 7) === this.#primeiroDia.slice(0, 7);
   }
 
+  // #region mes-seguinte
+  // Logo depois do outro mês: dezembro é seguido pelo janeiro do ano
+  // seguinte, porque a contagem não recomeça a cada ano.
+  ehSeguinteDe(anterior: MesDeApuracao): boolean {
+    return this.#contagem() === anterior.#contagem() + 1;
+  }
+
+  // Os meses contados desde o ano zero.
+  #contagem(): number {
+    const ano = Number(this.#primeiroDia.slice(0, 4));
+    const mes = Number(this.#primeiroDia.slice(5, 7));
+    return ano * 12 + mes;
+  }
+  // #endregion
+
   equivaleA(outro: MesDeApuracao): boolean {
     return this.#primeiroDia === outro.#primeiroDia;
   }

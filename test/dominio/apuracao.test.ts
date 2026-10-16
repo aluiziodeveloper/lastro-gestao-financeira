@@ -9,6 +9,7 @@ import type {
   ResultadoDaCategoria,
 } from '../../src/dominio/apuracao/apuracao-do-mes.js';
 import { apurarMes } from '../../src/dominio/apuracao/apuracao-mensal.js';
+import { estadoInicial } from '../../src/dominio/apuracao/estado-da-apuracao.js';
 import { Carteira } from '../../src/dominio/carteira.js';
 import { Dinheiro } from '../../src/dominio/dinheiro.js';
 import { criarIdDeCarteira } from '../../src/dominio/id-de-carteira.js';
@@ -47,7 +48,7 @@ function apurar(
 ) {
   return apurarMes(
     mes('2026-03'),
-    carteiraCom(antes),
+    estadoInicial(carteiraCom(antes)),
     doMes,
     referenciasCom(catalogo),
   );
@@ -64,6 +65,8 @@ function acoesEmOperacaoComum(
     totalVendido: centavos(totalVendido),
     resultado: centavos(resultado),
     isenta,
+    compensado: centavos(0n),
+    base: centavos(isenta || resultado < 0n ? 0n : resultado),
     imposto: centavos(imposto),
   };
 }
@@ -230,7 +233,7 @@ describe('Apuração mensal: resultado da venda', () => {
       precoEmCentavos: 15_00n,
     });
 
-    const { carteira } = extrair(apurar(compras, [venda]));
+    const { carteira } = extrair(apurar(compras, [venda])).estado;
 
     expect(carteira.quantidadeDe(ticker('PETR4'))).toBe(2_500n);
   });
@@ -320,7 +323,7 @@ describe('Apuração mensal: erros', () => {
     expect(() =>
       apurarMes(
         mes('2026-03'),
-        carteiraCom([compra]),
+        estadoInicial(carteiraCom([compra])),
         [venda],
         referenciasCom(comBdr),
       ),
@@ -333,7 +336,7 @@ describe('Apuração: a lei do mês', () => {
   it('recusa um mês sem regime, como dezembro de 2023', () => {
     const apuracao = apurarMes(
       mes('2023-12'),
-      carteiraCom([]),
+      estadoInicial(carteiraCom([])),
       [],
       referenciasCom(catalogo),
     );
@@ -378,12 +381,14 @@ describe('R5 · day trade · parcial, com posição anterior', () => {
       totalVendido: centavos(12_700_00n),
       resultado: centavos(300_00n),
       isenta: false,
+      compensado: centavos(0n),
+      base: centavos(300_00n),
       imposto: centavos(60_00n),
     });
   });
 
   it('deixa o custo de antes mais o da compra que sobrou', () => {
-    const { carteira } = extrair(apurar(fevereiro, doDia));
+    const { carteira } = extrair(apurar(fevereiro, doDia)).estado;
 
     expect(carteira.quantidadeDe(ticker('VALE3'))).toBe(200n);
     expect(
@@ -431,6 +436,8 @@ describe('R5 · day trade · regras do mês', () => {
       totalVendido: centavos(6_100_00n),
       resultado: centavos(-150_00n),
       isenta: false,
+      compensado: centavos(0n),
+      base: centavos(0n),
       imposto: centavos(0n),
     });
   });
@@ -534,6 +541,8 @@ describe('R6 · venda de cotas de FII', () => {
       totalVendido: centavos(1_600_00n),
       resultado: centavos(100_00n),
       isenta: false,
+      compensado: centavos(0n),
+      base: centavos(100_00n),
       imposto: centavos(20_00n),
     });
   });
@@ -592,6 +601,8 @@ describe('ETF de ações', () => {
       totalVendido: centavos(1_300_00n),
       resultado: centavos(50_00n),
       isenta: false,
+      compensado: centavos(0n),
+      base: centavos(50_00n),
       imposto: centavos(7_50n),
     });
   });

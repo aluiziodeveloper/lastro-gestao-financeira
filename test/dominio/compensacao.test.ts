@@ -4,46 +4,59 @@ import type {
   NomeDaCategoria,
   ResultadoDaCategoria,
 } from '../../src/dominio/apuracao/apuracao-do-mes.js';
+import { categoriasDo } from '../../src/dominio/apuracao/categorias.js';
+import type { Lancamento } from '../../src/dominio/apuracao/lancamentos.js';
 import { Dinheiro } from '../../src/dominio/dinheiro.js';
-import { compensar } from '../../src/dominio/prejuizo/compensacao.js';
+import {
+  type Compensacao,
+  compensar,
+} from '../../src/dominio/prejuizo/compensacao.js';
 import { PrejuizoAcumulado } from '../../src/dominio/prejuizo/prejuizo-acumulado.js';
+import { regrasEm } from './referencias.js';
 
 function reais(centavos: bigint): Dinheiro {
   return Dinheiro.deCentavos(centavos);
 }
 
-// O resultado de uma categoria no mês. O total vendido e o imposto não
-// pesam na compensação: o que conta é o resultado e se o mês é isento.
-function resultadoDe(
+// As vendas de uma categoria no mês. Acima de R$ 20 mil vendidos, as
+// ações não são isentas; a isenção vem das regras do regime.
+function vendas(
   categoria: NomeDaCategoria,
-  centavos: bigint,
-  isenta = false,
-): ResultadoDaCategoria {
+  resultado: bigint,
+  totalVendido = 25_000_00n,
+): Lancamento {
   return {
     categoria,
-    totalVendido: reais(25_000_00n),
-    resultado: reais(centavos),
-    isenta,
-    imposto: reais(0n),
+    totalVendido: reais(totalVendido),
+    resultado: reais(resultado),
   };
 }
 
+const categorias = categoriasDo(regrasEm('2026-04-01'));
 const nenhum = PrejuizoAcumulado.nenhum();
+
+function daCategoria(
+  compensacao: Compensacao,
+  nome: NomeDaCategoria,
+): ResultadoDaCategoria | undefined {
+  return compensacao.categorias.find(
+    ({ categoria }) => categoria === nome,
+  );
+}
 
 // #region compensacao-cena
 describe('Compensação: abril de 2026, a cena', () => {
   const abril = compensar(
-    [
-      resultadoDe('acoes-comum', 3_000_00n),
-      resultadoDe('fii', -3_000_00n),
-    ],
+    categorias,
+    [vendas('acoes-comum', 3_000_00n), vendas('fii', -3_000_00n)],
     nenhum,
   );
 
   it('o prejuízo de FII não abate o lucro das ações', () => {
-    const [acoes] = abril.bases;
+    const acoes = daCategoria(abril, 'acoes-comum');
 
     expect(acoes?.base).toEqual(reais(3_000_00n));
+    expect(acoes?.imposto).toEqual(reais(450_00n));
   });
 
   it('o prejuízo de FII fica guardado para os FIIs seguintes', () => {
@@ -58,53 +71,43 @@ describe('Compensação dentro do grupo', () => {
     const anterior = nenhum.acumular('comum', reais(-2_000_00n));
 
     const marco = compensar(
-      [
-        resultadoDe('acoes-comum', 3_000_00n),
-        resultadoDe('etf', 500_00n),
-      ],
+      categorias,
+      [vendas('acoes-comum', 3_000_00n), vendas('etf', 500_00n)],
       anterior,
     );
 
-    expect(marco.bases).toEqual([
-      {
-        categoria: 'acoes-comum',
-        compensado: reais(2_000_00n),
-        base: reais(1_000_00n),
-      },
-      { categoria: 'etf', compensado: reais(0n), base: reais(500_00n) },
-    ]);
+    const acoes = daCategoria(marco, 'acoes-comum');
+    const etf = daCategoria(marco, 'etf');
+    expect(acoes?.compensado).toEqual(reais(2_000_00n));
+    expect(acoes?.imposto).toEqual(reais(150_00n));
+    expect(etf?.compensado).toEqual(reais(0n));
+    expect(etf?.imposto).toEqual(reais(75_00n));
     expect(marco.prejuizo).toEqual(nenhum);
   });
 
   it('a perda do mês entra no saldo antes dos ganhos do grupo', () => {
     const mes = compensar(
-      [
-        resultadoDe('acoes-comum', 1_000_00n),
-        resultadoDe('etf', -400_00n),
-      ],
+      categorias,
+      [vendas('acoes-comum', 1_000_00n), vendas('etf', -400_00n)],
       nenhum,
     );
 
-    expect(mes.bases[0]).toEqual({
-      categoria: 'acoes-comum',
-      compensado: reais(400_00n),
-      base: reais(600_00n),
-    });
+    expect(daCategoria(mes, 'acoes-comum')?.base).toEqual(
+      reais(600_00n),
+    );
     expect(mes.prejuizo).toEqual(nenhum);
   });
 
   it('o saldo maior que o ganho sobra para os meses seguintes', () => {
     const anterior = nenhum.acumular('fii', reais(-3_000_00n));
 
-    const maio = compensar([resultadoDe('fii', 1_000_00n)], anterior);
+    const maio = compensar(
+      categorias,
+      [vendas('fii', 1_000_00n)],
+      anterior,
+    );
 
-    expect(maio.bases).toEqual([
-      {
-        categoria: 'fii',
-        compensado: reais(1_000_00n),
-        base: reais(0n),
-      },
-    ]);
+    expect(daCategoria(maio, 'fii')?.imposto).toEqual(reais(0n));
     expect(maio.prejuizo.saldoDe('fii')).toEqual(reais(2_000_00n));
   });
 
@@ -112,18 +115,28 @@ describe('Compensação dentro do grupo', () => {
     const anterior = nenhum.acumular('day-trade', reais(-500_00n));
 
     const mes = compensar(
-      [
-        resultadoDe('acoes-comum', 1_000_00n),
-        resultadoDe('day-trade', 200_00n),
-      ],
+      categorias,
+      [vendas('acoes-comum', 1_000_00n), vendas('day-trade', 200_00n)],
       anterior,
     );
 
-    expect(mes.bases.map(({ base }) => base)).toEqual([
+    expect(daCategoria(mes, 'acoes-comum')?.base).toEqual(
       reais(1_000_00n),
-      reais(0n),
-    ]);
+    );
+    expect(daCategoria(mes, 'day-trade')?.base).toEqual(reais(0n));
     expect(mes.prejuizo.saldoDe('day-trade')).toEqual(reais(300_00n));
+  });
+
+  it('devolve as quatro categorias, na ordem, mesmo sem vendas', () => {
+    const vazio = compensar(categorias, [], nenhum);
+
+    expect(vazio.categorias.map(({ categoria }) => categoria)).toEqual([
+      'acoes-comum',
+      'day-trade',
+      'fii',
+      'etf',
+    ]);
+    expect(vazio.prejuizo).toEqual(nenhum);
   });
 });
 
@@ -132,23 +145,22 @@ describe('Compensação em mês isento (IN, art. 59, § 1º)', () => {
 
   it('o ganho isento não consome o prejuízo', () => {
     const fevereiro = compensar(
-      [resultadoDe('acoes-comum', 1_000_00n, true)],
+      categorias,
+      [vendas('acoes-comum', 1_000_00n, 15_000_00n)],
       anterior,
     );
 
-    expect(fevereiro.bases).toEqual([
-      {
-        categoria: 'acoes-comum',
-        compensado: reais(0n),
-        base: reais(0n),
-      },
-    ]);
+    const acoes = daCategoria(fevereiro, 'acoes-comum');
+    expect(acoes?.isenta).toBe(true);
+    expect(acoes?.compensado).toEqual(reais(0n));
+    expect(acoes?.base).toEqual(reais(0n));
     expect(fevereiro.prejuizo).toEqual(anterior);
   });
 
   it('a perda de um mês isento entra no saldo', () => {
     const mes = compensar(
-      [resultadoDe('acoes-comum', -500_00n, true)],
+      categorias,
+      [vendas('acoes-comum', -500_00n, 15_000_00n)],
       anterior,
     );
 

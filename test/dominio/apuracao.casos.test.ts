@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { apurarMes } from '../../src/dominio/apuracao/apuracao-mensal.js';
+import { estadoInicial } from '../../src/dominio/apuracao/estado-da-apuracao.js';
 import { CatalogoDeAtivos } from '../../src/dominio/ativo.js';
 import { Carteira } from '../../src/dominio/carteira.js';
 import { Dinheiro } from '../../src/dominio/dinheiro.js';
@@ -139,7 +140,7 @@ describe('Apuração mensal: casos resolvidos à mão', () => {
     const apuracao = extrair(
       apurarMes(
         mes('2026-03'),
-        carteiraCom(antes),
+        estadoInicial(carteiraCom(antes)),
         doMes,
         referenciasCom(catalogo),
       ),
