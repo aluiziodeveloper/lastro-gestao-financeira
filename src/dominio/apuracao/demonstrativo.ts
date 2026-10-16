@@ -1,7 +1,8 @@
-import type { Dinheiro } from '../dinheiro.js';
-import type {
-  GrupoDeCompensacao,
-  PrejuizoAcumulado,
+import { Dinheiro } from '../dinheiro.js';
+import {
+  type GrupoDeCompensacao,
+  grupoDaCategoria,
+  type PrejuizoAcumulado,
 } from '../prejuizo/prejuizo-acumulado.js';
 import type { ApuracaoDoMes } from './apuracao-do-mes.js';
 import type { MesDeApuracao } from './mes-de-apuracao.js';
@@ -21,17 +22,64 @@ export interface LinhaDoDemonstrativo {
   readonly grupos: Readonly<Record<GrupoDeCompensacao, GrupoNoMes>>;
 }
 
-/* eslint-disable @typescript-eslint/no-unused-vars -- esboço */
 // #region demonstrativo
 // Desafio do Capítulo 11: o demonstrativo do ano, mês a mês, a partir
 // das apurações e do prejuízo que vem do ano anterior (Perguntas e
-// Respostas IRPF 2026, pergunta 711). Os testes estão em
-// test/dominio/demonstrativo.test.ts.
+// Respostas IRPF 2026, pergunta 711). É a dobra da Seção 8: o prejuízo
+// a compensar de um mês é o anterior do mês seguinte.
 export function demonstrativoDoAno(
   apuracoes: readonly ApuracaoDoMes[],
   doAnoAnterior: PrejuizoAcumulado,
 ): readonly LinhaDoDemonstrativo[] {
-  throw new Error('Desafio do Capítulo 11 não resolvido');
+  const inicio: Andamento = { linhas: [], anterior: doAnoAnterior };
+  return apuracoes.reduce(proximaLinha, inicio).linhas;
+}
+
+interface Andamento {
+  readonly linhas: readonly LinhaDoDemonstrativo[];
+  readonly anterior: PrejuizoAcumulado;
+}
+
+function proximaLinha(
+  { linhas, anterior }: Andamento,
+  apuracao: ApuracaoDoMes,
+): Andamento {
+  const colunas = (grupo: GrupoDeCompensacao) =>
+    colunasDoGrupo(grupo, apuracao, anterior);
+  const grupos = {
+    comum: colunas('comum'),
+    'day-trade': colunas('day-trade'),
+    fii: colunas('fii'),
+  };
+  const { mes, estado } = apuracao;
+  return {
+    linhas: [...linhas, { mes, grupos }],
+    anterior: estado.prejuizo,
+  };
+}
+
+// As categorias do grupo somadas; o anterior vem da linha de antes, e
+// o que fica a compensar, do estado do mês.
+function colunasDoGrupo(
+  grupo: GrupoDeCompensacao,
+  { categorias, estado }: ApuracaoDoMes,
+  anterior: PrejuizoAcumulado,
+): GrupoNoMes {
+  const doGrupo = categorias.filter(
+    ({ categoria }) => grupoDaCategoria[categoria] === grupo,
+  );
+  return {
+    resultado: somar(doGrupo.map(({ resultado }) => resultado)),
+    anterior: anterior.saldoDe(grupo),
+    base: somar(doGrupo.map(({ base }) => base)),
+    aCompensar: estado.prejuizo.saldoDe(grupo),
+  };
 }
 // #endregion
-/* eslint-enable @typescript-eslint/no-unused-vars */
+
+function somar(valores: readonly Dinheiro[]): Dinheiro {
+  return valores.reduce(
+    (total, valor) => total.somar(valor),
+    Dinheiro.deCentavos(0n),
+  );
+}
