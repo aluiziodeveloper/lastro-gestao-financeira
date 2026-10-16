@@ -2,8 +2,9 @@ import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 
 import type { Totais } from '../../src/dominio/apuracao/apuracao-do-mes.js';
-import { categoriasDoMes } from '../../src/dominio/apuracao/categorias.js';
+import { categoriasDo } from '../../src/dominio/apuracao/categorias.js';
 import { Dinheiro } from '../../src/dominio/dinheiro.js';
+import { regrasEm } from './referencias.js';
 
 const umValor = (min: bigint, max: bigint) =>
   fc
@@ -21,7 +22,7 @@ const umTotal: fc.Arbitrary<Totais> = fc.record({
 // #region contrato-das-categorias
 // O contrato que toda categoria cumpre. A mesma suíte roda para as
 // quatro: quem apura pode trocar uma pela outra sem surpresa.
-describe.each(categoriasDoMes)(
+describe.each(categoriasDo(regrasEm('2026-01-01')))(
   'contrato da categoria $nome',
   (categoria) => {
     it('devolve o próprio nome e os totais que recebeu', () => {

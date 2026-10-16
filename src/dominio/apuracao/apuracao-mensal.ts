@@ -1,5 +1,5 @@
-import type { CatalogoDeAtivos } from '../ativo.js';
 import type { Carteira } from '../carteira.js';
+import type { DadosDeReferencia } from '../dados-de-referencia.js';
 import type { Operacao } from '../operacao.js';
 import { ok, type Result } from '../resultado.js';
 import type {
@@ -7,7 +7,8 @@ import type {
   ErroDeApuracao,
   Totais,
 } from './apuracao-do-mes.js';
-import { categoriasDoMes } from './categorias.js';
+import type { CategoriaDeApuracao } from './categoria.js';
+import { categoriasDo } from './categorias.js';
 import { separarDayTrade } from './day-trade.js';
 import {
   type Andamento,
@@ -15,29 +16,40 @@ import {
   percorrer,
   totaisDe,
 } from './lancamentos.js';
+import type { MesDeApuracao } from './mes-de-apuracao.js';
 import { resultadoDoDayTrade } from './resultado-do-day-trade.js';
 
 // #region apuracao-mensal
 // Serviço de domínio: a apuração não pertence à carteira nem ao
-// catálogo. Ela separa o day trade, passa o resto pela carteira e
-// entrega a cada categoria os totais que são dela.
+// catálogo. Ela resolve a lei do mês, separa o day trade, passa o
+// resto pela carteira e entrega a cada categoria os totais dela. Tudo
+// o que o cálculo usa chega pelos parâmetros: o mesmo mês, com os
+// mesmos dados, dá sempre a mesma apuração.
 export function apurarMes(
+  mes: MesDeApuracao,
   carteira: Carteira,
   operacoes: readonly Operacao[],
-  catalogo: CatalogoDeAtivos,
+  referencias: DadosDeReferencia,
 ): Result<ApuracaoDoMes, ErroDeApuracao> {
+  const { catalogo, regimes } = referencias;
+  const regime = regimes.vigenteEm(mes.primeiroDia());
+  if (!regime.ok) {
+    return regime;
+  }
   const separacao = separarDayTrade(operacoes);
   if (!separacao.ok) {
     return separacao;
   }
   const { comum, dayTrade } = separacao.valor;
   return fechar(
+    categoriasDo(regime.valor.apuracao),
     percorrer(carteira, comum, catalogo),
     resultadoDoDayTrade(dayTrade, catalogo),
   );
 }
 
 function fechar(
+  categorias: readonly CategoriaDeApuracao[],
   comum: Result<Andamento, ErroDeApuracao>,
   dayTrade: Result<Totais, ErroDeApuracao>,
 ): Result<ApuracaoDoMes, ErroDeApuracao> {
@@ -52,7 +64,7 @@ function fechar(
     { categoria: 'day-trade', ...dayTrade.valor },
   ];
   return ok({
-    categorias: categoriasDoMes.map((categoria) =>
+    categorias: categorias.map((categoria) =>
       categoria.apurar(totaisDe(categoria.nome, lancamentos)),
     ),
     carteira: comum.valor.carteira,

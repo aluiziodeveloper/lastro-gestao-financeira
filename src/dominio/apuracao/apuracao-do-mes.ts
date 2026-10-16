@@ -2,6 +2,7 @@ import type { ErroDeCatalogo } from '../ativo.js';
 import type { Carteira } from '../carteira.js';
 import type { Dinheiro } from '../dinheiro.js';
 import type { ErroDeCarteira } from '../erros.js';
+import type { ErroSemRegime } from '../regime/regimes-tributarios.js';
 import type { ErroDeSeparacao } from './pareamento.js';
 
 // #region apuracao-do-mes
@@ -33,5 +34,5 @@ export interface ApuracaoDoMes {
 }
 
 export type ErroDeApuracao =
-  ErroDeCarteira | ErroDeCatalogo | ErroDeSeparacao;
+  ErroDeCarteira | ErroDeCatalogo | ErroDeSeparacao | ErroSemRegime;
 // #endregion

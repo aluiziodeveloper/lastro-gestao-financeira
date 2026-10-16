@@ -1,7 +1,6 @@
-import { Aliquota } from '../aliquota.js';
 import type { ClasseDeAtivo } from '../ativo.js';
-import { Dinheiro } from '../dinheiro.js';
 import { garantirExaustividade } from '../exaustividade.js';
+import type { RegrasDeApuracao } from '../regime/regime-tributario.js';
 import type { NomeDaCategoria } from './apuracao-do-mes.js';
 import {
   categoria,
@@ -10,26 +9,27 @@ import {
   semIsencao,
 } from './categoria.js';
 
-const quinzePorCento = Aliquota.de(15n, 100n);
-const vintePorCento = Aliquota.de(20n, 100n);
-
-// #region isencao-mensal
-// Ações em operação comum: se o total vendido no mês não passa de
-// R$ 20.000,00, o ganho do mês inteiro é isento; passou um centavo, o
-// ganho inteiro é tributável (Lei 11.033/2004, art. 3º, I).
-const limiteDeIsencao = Dinheiro.deCentavos(20_000_00n);
-// #endregion
+const nomesDasCategorias: readonly NomeDaCategoria[] = [
+  'acoes-comum',
+  'day-trade',
+  'fii',
+  'etf',
+];
 
 // #region categorias
-// As quatro categorias do mês, montadas com as mesmas peças (IN RFB
-// 1.585/2015, arts. 37, 57, 59 e 65). Uma categoria nova é um item a
-// mais nesta lista, e a apuração não muda.
-export const categoriasDoMes: readonly CategoriaDeApuracao[] = [
-  categoria('acoes-comum', quinzePorCento, isencaoAte(limiteDeIsencao)),
-  categoria('day-trade', vintePorCento, semIsencao),
-  categoria('fii', vintePorCento, semIsencao),
-  categoria('etf', quinzePorCento, semIsencao),
-];
+// As quatro categorias do mês, montadas com as mesmas peças a partir
+// das regras do regime vigente: a alíquota e, quando há, o limite de
+// isenção. Nenhum valor da lei mora aqui.
+export function categoriasDo(
+  regras: RegrasDeApuracao,
+): readonly CategoriaDeApuracao[] {
+  return nomesDasCategorias.map((nome) => {
+    const { aliquota, isencaoAte: limite } = regras[nome];
+    const isencao =
+      limite === undefined ? semIsencao : isencaoAte(limite);
+    return categoria(nome, aliquota, isencao);
+  });
+}
 // #endregion
 
 // #region categoria-da-classe

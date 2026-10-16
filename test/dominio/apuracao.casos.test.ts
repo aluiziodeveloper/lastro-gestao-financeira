@@ -9,6 +9,7 @@ import type { Operacao } from '../../src/dominio/operacao.js';
 import { Ticker } from '../../src/dominio/ticker.js';
 import { extrair } from '../apoio/resultado.js';
 import { umaCompra, umaVenda } from './construtores.js';
+import { mes, referenciasCom } from './referencias.js';
 
 const catalogo = ['PETR4', 'VALE3', 'ITUB4'].reduce(
   (catalogoParcial, codigo) =>
@@ -136,7 +137,12 @@ const casos = [
 describe('Apuração mensal: casos resolvidos à mão', () => {
   it.each(casos)('$caso', ({ antes, doMes, imposto }) => {
     const apuracao = extrair(
-      apurarMes(carteiraCom(antes), doMes, catalogo),
+      apurarMes(
+        mes('2026-03'),
+        carteiraCom(antes),
+        doMes,
+        referenciasCom(catalogo),
+      ),
     );
 
     for (const { categoria, imposto: apurado } of apuracao.categorias) {

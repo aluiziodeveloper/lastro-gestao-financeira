@@ -17,6 +17,7 @@ import { err } from '../../src/dominio/resultado.js';
 import { Ticker } from '../../src/dominio/ticker.js';
 import { extrair } from '../apoio/resultado.js';
 import { umaCompra, umaVenda } from './construtores.js';
+import { mes, referenciasCom } from './referencias.js';
 
 function ticker(codigo: string): Ticker {
   return extrair(Ticker.criar(codigo));
@@ -44,7 +45,12 @@ function apurar(
   antes: readonly Operacao[],
   doMes: readonly Operacao[],
 ) {
-  return apurarMes(carteiraCom(antes), doMes, catalogo);
+  return apurarMes(
+    mes('2026-03'),
+    carteiraCom(antes),
+    doMes,
+    referenciasCom(catalogo),
+  );
 }
 
 function acoesEmOperacaoComum(
@@ -312,10 +318,32 @@ describe('Apuração mensal: erros', () => {
     });
 
     expect(() =>
-      apurarMes(carteiraCom([compra]), [venda], comBdr),
+      apurarMes(
+        mes('2026-03'),
+        carteiraCom([compra]),
+        [venda],
+        referenciasCom(comBdr),
+      ),
     ).toThrow('Caso não tratado');
   });
 });
+
+// #region apuracao-sem-regime
+describe('Apuração: a lei do mês', () => {
+  it('recusa um mês sem regime, como dezembro de 2023', () => {
+    const apuracao = apurarMes(
+      mes('2023-12'),
+      carteiraCom([]),
+      [],
+      referenciasCom(catalogo),
+    );
+
+    expect(apuracao).toEqual(
+      err({ tipo: 'sem-regime-vigente', data: '2023-12-01' }),
+    );
+  });
+});
+// #endregion
 
 // #region day-trade-parcial
 describe('R5 · day trade · parcial, com posição anterior', () => {

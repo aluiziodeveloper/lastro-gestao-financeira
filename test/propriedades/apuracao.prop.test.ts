@@ -2,8 +2,9 @@ import fc from 'fast-check';
 import { describe, expect, it } from 'vitest';
 
 import type { CategoriaDeApuracao } from '../../src/dominio/apuracao/categoria.js';
-import { categoriasDoMes } from '../../src/dominio/apuracao/categorias.js';
+import { categoriasDo } from '../../src/dominio/apuracao/categorias.js';
 import { Dinheiro } from '../../src/dominio/dinheiro.js';
+import { regrasEm } from '../dominio/referencias.js';
 
 const umValor = (min: bigint, max: bigint) =>
   fc
@@ -17,7 +18,7 @@ const umResultado = umValor(-50_000_00n, 50_000_00n);
 // Sem a categoria, as propriedades passariam sem testar nada: o teste
 // falha em vez de comparar valores ausentes.
 function categoriaDeAcoes(): CategoriaDeApuracao {
-  const acoes = categoriasDoMes.find(
+  const acoes = categoriasDo(regrasEm('2026-01-01')).find(
     (categoria) => categoria.nome === 'acoes-comum',
   );
   if (acoes === undefined) {
