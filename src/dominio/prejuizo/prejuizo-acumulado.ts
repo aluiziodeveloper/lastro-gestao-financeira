@@ -60,6 +60,29 @@ export class PrejuizoAcumulado
   }
   // #endregion
 
+  // #region prejuizo-compensar
+  // Um ganho consome o saldo do grupo até onde o saldo vai. Prejuízo e
+  // zero não consomem nada.
+  compensar(
+    grupo: GrupoDeCompensacao,
+    ganho: Dinheiro,
+  ): GanhoCompensado {
+    if (!ganho.ehPositivo()) {
+      return { compensado: zero, prejuizo: this };
+    }
+    const saldo = this.#saldos[grupo];
+    const compensado = ganho.excede(saldo) ? saldo : ganho;
+    const restante = saldo.subtrair(compensado);
+    return {
+      compensado,
+      prejuizo: new PrejuizoAcumulado({
+        ...this.#saldos,
+        [grupo]: restante,
+      }),
+    };
+  }
+  // #endregion
+
   equivaleA(outro: PrejuizoAcumulado): boolean {
     return grupos.every((grupo) =>
       this.#saldos[grupo].equivaleA(outro.#saldos[grupo]),
@@ -72,6 +95,12 @@ export class PrejuizoAcumulado
     );
     return `PrejuizoAcumulado(${saldos.join(', ')})`;
   }
+}
+
+// Quanto do ganho o saldo absorveu, e o prejuízo que sobra.
+export interface GanhoCompensado {
+  readonly compensado: Dinheiro;
+  readonly prejuizo: PrejuizoAcumulado;
 }
 
 const grupos: readonly GrupoDeCompensacao[] = [
