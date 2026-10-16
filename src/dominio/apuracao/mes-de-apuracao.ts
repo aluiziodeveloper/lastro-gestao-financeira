@@ -1,5 +1,6 @@
 import {
   criarDataDoCalendario,
+  primeiroDiaDoMesSeguinte,
   type DataDoCalendario,
 } from '../data-do-calendario.js';
 import { inspecionar, type ObjetoDeValor } from '../objeto-de-valor.js';
@@ -73,6 +74,13 @@ export class MesDeApuracao implements ObjetoDeValor<MesDeApuracao> {
       .map((data) => data.valor);
   }
   // #endregion
+
+  // O mês depois deste, em que vencem os impostos deste.
+  seguinte(): MesDeApuracao {
+    return new MesDeApuracao(
+      primeiroDiaDoMesSeguinte(this.#primeiroDia),
+    );
+  }
 
   // O último mês do ano, em que saldos anuais se encerram.
   ehDezembro(): boolean {

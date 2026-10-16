@@ -1,5 +1,7 @@
 import type { ErroDeCatalogo } from '../ativo.js';
 import type { Dinheiro } from '../dinheiro.js';
+import type { ErroDeCalendario } from '../calendario.js';
+import type { Recolhimento } from '../darf/darf.js';
 import type { ErroDeCarteira } from '../erros.js';
 import type {
   DeducaoDoIrrf,
@@ -53,7 +55,9 @@ export interface MovimentoDoMes {
 export interface ApuracaoDoMes {
   readonly mes: MesDeApuracao;
   readonly categorias: readonly ResultadoDaCategoria[];
+  readonly imposto: Dinheiro;
   readonly irrf: DeducaoDoIrrf;
+  readonly recolhimento: Recolhimento;
   readonly estado: EstadoDaApuracao;
 }
 
@@ -63,5 +67,6 @@ export type ErroDeApuracao =
   | ErroDeSeparacao
   | ErroSemRegime
   | ErroDeSequencia
-  | ErroDeRetencao;
+  | ErroDeRetencao
+  | ErroDeCalendario;
 // #endregion

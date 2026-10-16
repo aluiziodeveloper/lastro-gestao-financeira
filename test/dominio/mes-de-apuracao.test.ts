@@ -98,3 +98,13 @@ describe('MesDeApuracao: os dias do mês', () => {
     expect(dias[quantos - 1]).toBe(ultimo);
   });
 });
+
+describe('MesDeApuracao: o mês seguinte, como valor', () => {
+  it.each([
+    ['2026-01', '2026-02'],
+    ['2026-11', '2026-12'],
+    ['2026-12', '2027-01'],
+  ])('depois de %s vem %s', (texto, seguinte) => {
+    expect(mes(texto).seguinte()).toEqual(mes(seguinte));
+  });
+});

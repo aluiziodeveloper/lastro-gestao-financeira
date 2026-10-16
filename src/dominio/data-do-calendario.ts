@@ -28,6 +28,22 @@ export function criarDataDoCalendario(
 }
 // #endregion
 
+// #region primeiro-dia-do-mes-seguinte
+// O dia 1 do mês seguinte ao da data. O Date.UTC conta os meses a
+// partir de 0: o número do mês, usado como índice, já aponta para o
+// seguinte, e dezembro vira o janeiro do ano seguinte. A data sai do
+// próprio calendário, e por isso é válida sem passar pela validação:
+// como no construtor, só este módulo aplica a marca.
+export function primeiroDiaDoMesSeguinte(
+  data: DataDoCalendario,
+): DataDoCalendario {
+  const ano = Number(data.slice(0, 4));
+  const mes = Number(data.slice(5, 7));
+  const seguinte = new Date(Date.UTC(ano, mes, 1));
+  return seguinte.toISOString().slice(0, 10) as DataDoCalendario;
+}
+// #endregion
+
 function existeNoCalendario(
   ano: number,
   mes: number,

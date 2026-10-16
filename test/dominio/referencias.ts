@@ -1,4 +1,5 @@
 import type { CatalogoDeAtivos } from '../../src/dominio/ativo.js';
+import { calendarioNacional } from '../../src/dominio/calendario.js';
 import { MesDeApuracao } from '../../src/dominio/apuracao/mes-de-apuracao.js';
 import { criarDataDoCalendario } from '../../src/dominio/data-do-calendario.js';
 import type { DadosDeReferencia } from '../../src/dominio/dados-de-referencia.js';
@@ -21,7 +22,11 @@ export function mes(texto: string): MesDeApuracao {
 export function referenciasCom(
   catalogo: CatalogoDeAtivos,
 ): DadosDeReferencia {
-  return { catalogo, regimes: regimesDoLastro };
+  return {
+    catalogo,
+    regimes: regimesDoLastro,
+    calendario: calendarioNacional,
+  };
 }
 // #endregion
 

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import { Aliquota } from '../../src/dominio/aliquota.js';
 import { apurarMes } from '../../src/dominio/apuracao/apuracao-mensal.js';
+import { calendarioNacional } from '../../src/dominio/calendario.js';
 import { estadoInicial } from '../../src/dominio/apuracao/estado-da-apuracao.js';
 import { CatalogoDeAtivos } from '../../src/dominio/ativo.js';
 import { Carteira } from '../../src/dominio/carteira.js';
@@ -97,6 +98,7 @@ function impostoDaCena(ano: string, regimes: RegimesTributarios) {
       {
         catalogo,
         regimes,
+        calendario: calendarioNacional,
       },
     ),
   );
@@ -106,7 +108,11 @@ function impostoDaCena(ano: string, regimes: RegimesTributarios) {
 
 // #region regime-datas
 describe('Antes e depois das viradas de 2024 e de 2026', () => {
-  const referencias = { catalogo, regimes: regimesDoLastro };
+  const referencias = {
+    catalogo,
+    regimes: regimesDoLastro,
+    calendario: calendarioNacional,
+  };
 
   it('dezembro de 2023 não tem regime; janeiro de 2024 tem', () => {
     const apurar = (texto: string) =>
