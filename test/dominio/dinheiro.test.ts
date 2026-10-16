@@ -185,3 +185,20 @@ describe('Dinheiro: excede', () => {
     expect(Dinheiro.deCentavos(10_000_00n).excede(limite)).toBe(false);
   });
 });
+
+// #region dinheiro-em-reais-teste
+describe('Dinheiro: em reais', () => {
+  it.each([
+    [0n, 'R$ 0,00'],
+    [5n, 'R$ 0,05'],
+    [7_32n, 'R$ 7,32'],
+    [999_99n, 'R$ 999,99'],
+    [1_000_00n, 'R$ 1.000,00'],
+    [1_234_56n, 'R$ 1.234,56'],
+    [12_345_678_90n, 'R$ 12.345.678,90'],
+    [-3_000_00n, '-R$ 3.000,00'],
+  ])('%s centavos: %s', (centavos, texto) => {
+    expect(Dinheiro.deCentavos(centavos).emReais()).toBe(texto);
+  });
+});
+// #endregion
