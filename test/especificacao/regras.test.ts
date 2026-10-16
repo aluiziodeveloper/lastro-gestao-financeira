@@ -1,12 +1,6 @@
 import { describe, it } from 'vitest';
 
 // #region especificacao-regras
-describe('R8 · dividendos · Capítulo 10', () => {
-  it.todo(
-    'retém 10% dos dividendos acima de R$ 50.000,00 por empresa no mês',
-  );
-});
-
 describe('R10 · prejuízo acumulado · Capítulo 11', () => {
   it.todo('compensa prejuízo apenas no mesmo grupo de compensação');
 });

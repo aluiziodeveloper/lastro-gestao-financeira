@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  CatalogoDeAtivos,
-  type SituacaoDoFundo,
-} from '../../src/dominio/ativo.js';
+import { CatalogoDeAtivos } from '../../src/dominio/ativo.js';
 import { criarDataDoCalendario } from '../../src/dominio/data-do-calendario.js';
 import { Dinheiro } from '../../src/dominio/dinheiro.js';
 import type {
@@ -15,6 +12,7 @@ import type {
 import { tratarProvento } from '../../src/dominio/proventos/tratar-provento.js';
 import { err, ok } from '../../src/dominio/resultado.js';
 import { Quantidade } from '../../src/dominio/quantidade.js';
+import type { SituacaoDoFundo } from '../../src/dominio/situacao-do-fundo.js';
 import { Ticker } from '../../src/dominio/ticker.js';
 import { extrair } from '../apoio/resultado.js';
 import { referenciasCom } from './referencias.js';
@@ -31,6 +29,8 @@ function umDividendo(pagamento: string, bruto: bigint): Dividendo {
     ticker: extrair(Ticker.criar('VALE3')),
     pagamento: extrair(criarDataDoCalendario(pagamento)),
     bruto: centavos(bruto),
+    anoDoLucro: 2025,
+    aprovacao: extrair(criarDataDoCalendario('2025-12-01')),
   };
 }
 
@@ -63,7 +63,13 @@ describe('Proventos · dividendo', () => {
 // #endregion
 
 function umJcp(pagamento: string, bruto: bigint): Jcp {
-  return { ...umDividendo(pagamento, bruto), tipo: 'jcp' };
+  const { ticker } = umDividendo(pagamento, bruto);
+  return {
+    tipo: 'jcp',
+    ticker,
+    pagamento: extrair(criarDataDoCalendario(pagamento)),
+    bruto: centavos(bruto),
+  };
 }
 
 // #region jcp-teste

@@ -78,7 +78,7 @@ function definicao(
 const ate2026 = definicao('antigo', '2024-01-01', '2026-01-01');
 
 // #region regimes-validacao
-describe('RegimesTributarios: o conjunto cobre o tempo uma vez só', () => {
+describe('RegimesTributarios: cobrem o tempo uma vez só', () => {
   it('recusa uma lacuna: o seguinte começa depois do fim', () => {
     const novo = definicao('novo', '2026-02-01');
 

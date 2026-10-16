@@ -7,11 +7,15 @@ import type { Ticker } from '../ticker.js';
 // Um provento é o que um ativo paga a quem o tem: o valor bruto, na
 // data do pagamento. Cada tipo de provento é um membro da união, com
 // o seu tratamento fiscal.
+// O dividendo traz também o ano do lucro que o gerou e a data em que
+// a distribuição foi aprovada, que decidem a transição da lei de 2026.
 export interface Dividendo {
   readonly tipo: 'dividendo';
   readonly ticker: Ticker;
   readonly pagamento: DataDoCalendario;
   readonly bruto: Dinheiro;
+  readonly anoDoLucro: number;
+  readonly aprovacao: DataDoCalendario;
 }
 
 // Juros sobre capital próprio: a data é a do pagamento ou do crédito.

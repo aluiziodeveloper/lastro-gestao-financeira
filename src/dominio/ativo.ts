@@ -1,6 +1,11 @@
 import type { DataDoCalendario } from './data-do-calendario.js';
-import type { Quantidade } from './quantidade.js';
+import type { Emissor } from './emissor.js';
 import { err, ok, type Result } from './resultado.js';
+import {
+  incluirEmOrdem,
+  type SituacaoDoFundo,
+  situacaoEm,
+} from './situacao-do-fundo.js';
 import type { Ticker } from './ticker.js';
 
 // #region catalogo-de-ativos
@@ -10,6 +15,7 @@ export type ClasseDeAtivo = 'acao' | 'fii' | 'etf';
 
 export type ErroDeCatalogo =
   | { readonly tipo: 'ativo-fora-do-catalogo'; readonly ticker: Ticker }
+  | { readonly tipo: 'emissor-desconhecido'; readonly ticker: Ticker }
   | {
       readonly tipo: 'situacao-do-fundo-desconhecida';
       readonly ticker: Ticker;
@@ -17,22 +23,11 @@ export type ErroDeCatalogo =
     };
 // #endregion
 
-// #region ativo-requisitos-fii
-// O que a isenção dos rendimentos de um FII pergunta ao fundo, a
-// partir de uma data. A situação muda com o tempo: vale a mais recente
-// que já tinha começado na data do pagamento.
-export interface SituacaoDoFundo {
-  readonly desde: DataDoCalendario;
-  readonly negociacao: 'bolsa-ou-balcao-organizado' | 'outra';
-  readonly cotistas: number;
-  readonly cotasEmitidas: Quantidade;
-}
-// #endregion
-
 // Tudo o que o catálogo sabe de um ativo; as situações, em ordem.
 interface FichaDoAtivo {
   readonly classe: ClasseDeAtivo;
   readonly situacoes: readonly SituacaoDoFundo[];
+  readonly emissor?: Emissor;
 }
 
 // Coleção de primeira classe: quem usa o catálogo pergunta a classe
@@ -56,16 +51,30 @@ export class CatalogoDeAtivos {
     ticker: Ticker,
     situacao: SituacaoDoFundo,
   ): Result<CatalogoDeAtivos, ErroDeCatalogo> {
+    return this.#alterarFicha(ticker, (ficha) => ({
+      ...ficha,
+      situacoes: incluirEmOrdem(ficha.situacoes, situacao),
+    }));
+  }
+
+  comEmissor(
+    ticker: Ticker,
+    emissor: Emissor,
+  ): Result<CatalogoDeAtivos, ErroDeCatalogo> {
+    return this.#alterarFicha(ticker, (ficha) => ({
+      ...ficha,
+      emissor,
+    }));
+  }
+
+  emissorDe(ticker: Ticker): Result<Emissor, ErroDeCatalogo> {
     const ficha = this.#fichaDe(ticker);
     if (!ficha.ok) {
       return ficha;
     }
-    // A ordenação é estável: com a mesma data, a situação incluída
-    // depois fica depois, e é ela que vale. Incluir de novo corrige.
-    const situacoes = [...ficha.valor.situacoes, situacao].toSorted(
-      (uma, outra) => uma.desde.localeCompare(outra.desde),
-    );
-    return ok(this.#comFicha(ticker, { ...ficha.valor, situacoes }));
+    return ficha.valor.emissor === undefined
+      ? err({ tipo: 'emissor-desconhecido', ticker })
+      : ok(ficha.valor.emissor);
   }
 
   classeDe(ticker: Ticker): Result<ClasseDeAtivo, ErroDeCatalogo> {
@@ -81,9 +90,7 @@ export class CatalogoDeAtivos {
     if (!ficha.ok) {
       return ficha;
     }
-    const situacao = ficha.valor.situacoes.findLast(
-      ({ desde }) => desde <= data,
-    );
+    const situacao = situacaoEm(ficha.valor.situacoes, data);
     return situacao === undefined
       ? err({ tipo: 'situacao-do-fundo-desconhecida', ticker, data })
       : ok(situacao);
@@ -95,6 +102,16 @@ export class CatalogoDeAtivos {
       return err({ tipo: 'ativo-fora-do-catalogo', ticker });
     }
     return ok(ficha);
+  }
+
+  #alterarFicha(
+    ticker: Ticker,
+    alteracao: (ficha: FichaDoAtivo) => FichaDoAtivo,
+  ): Result<CatalogoDeAtivos, ErroDeCatalogo> {
+    const ficha = this.#fichaDe(ticker);
+    return ficha.ok
+      ? ok(this.#comFicha(ticker, alteracao(ficha.valor)))
+      : ficha;
   }
 
   #comFicha(ticker: Ticker, ficha: FichaDoAtivo): CatalogoDeAtivos {

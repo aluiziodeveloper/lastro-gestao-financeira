@@ -36,10 +36,21 @@ export interface RequisitosDaIsencaoDoFii {
   readonly aliquotaSemIsencao: Aliquota;
 }
 
-// A retenção na fonte de cada provento, pela data do pagamento.
+// A retenção sobre o total de dividendos que uma empresa paga no mês,
+// quando passa do limite. Ficam fora os lucros apurados até o último
+// ano da transição, com distribuição aprovada até o fim desse ano.
+export interface RegraDeDividendos {
+  readonly limiteMensal: Dinheiro;
+  readonly aliquota: Aliquota;
+  readonly ultimoAnoDaTransicao: number;
+}
+
+// A retenção na fonte de cada provento, pela data do pagamento. A
+// regra de dividendos só existe nos regimes que a têm.
 export interface RegrasDeProventos {
   readonly jcp: Aliquota;
   readonly fii: RequisitosDaIsencaoDoFii;
+  readonly dividendos?: RegraDeDividendos;
 }
 
 export interface RegimeTributario {

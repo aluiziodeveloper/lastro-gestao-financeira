@@ -35,9 +35,17 @@ const fiiDesde2024 = {
 };
 
 const proventosAte2025 = { jcp: quinzePorCento, fii: fiiDesde2024 };
+// Dividendos acima de R$ 50.000,00 por empresa no mês: 10% sobre o
+// total, desde janeiro de 2026, com a transição dos lucros de 2025
+// (Lei 9.250/1995, art. 6º-A, incluído pela Lei 15.270/2025; art. 8º).
 const proventosDesde2026 = {
   jcp: Aliquota.de(175n, 1000n),
   fii: fiiDesde2024,
+  dividendos: {
+    limiteMensal: Dinheiro.deCentavos(50_000_00n),
+    aliquota: Aliquota.de(10n, 100n),
+    ultimoAnoDaTransicao: 2025,
+  },
 };
 
 // O Lastro começa em 2024, quando a Lei 14.754/2023 passou a produzir

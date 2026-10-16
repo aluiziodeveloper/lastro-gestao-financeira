@@ -39,6 +39,11 @@ export class MesDeApuracao implements ObjetoDeValor<MesDeApuracao> {
     return this.#primeiroDia;
   }
 
+  // O ano e o mês da data são os deste mês.
+  contem(data: DataDoCalendario): boolean {
+    return data.slice(0, 7) === this.#primeiroDia.slice(0, 7);
+  }
+
   equivaleA(outro: MesDeApuracao): boolean {
     return this.#primeiroDia === outro.#primeiroDia;
   }

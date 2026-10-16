@@ -1,8 +1,5 @@
-import type {
-  CatalogoDeAtivos,
-  ErroDeCatalogo,
-  SituacaoDoFundo,
-} from '../ativo.js';
+import type { CatalogoDeAtivos, ErroDeCatalogo } from '../ativo.js';
+import type { SituacaoDoFundo } from '../situacao-do-fundo.js';
 import type {
   RegimeTributario,
   RequisitosDaIsencaoDoFii,

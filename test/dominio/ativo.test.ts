@@ -1,14 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  CatalogoDeAtivos,
-  type SituacaoDoFundo,
-} from '../../src/dominio/ativo.js';
+import { CatalogoDeAtivos } from '../../src/dominio/ativo.js';
 import {
   criarDataDoCalendario,
   type DataDoCalendario,
 } from '../../src/dominio/data-do-calendario.js';
+import { criarEmissor } from '../../src/dominio/emissor.js';
 import { Quantidade } from '../../src/dominio/quantidade.js';
+import type { SituacaoDoFundo } from '../../src/dominio/situacao-do-fundo.js';
 import { err, ok } from '../../src/dominio/resultado.js';
 import { Ticker } from '../../src/dominio/ticker.js';
 import { extrair } from '../apoio/resultado.js';
@@ -177,3 +176,49 @@ describe('Catálogo de ativos: situação de um ativo ausente', () => {
     expect(comSituacao.classeDe(xplg11)).toEqual(ok('fii'));
   });
 });
+
+// #region emissor-no-catalogo-teste
+describe('Catálogo de ativos: o emissor de cada ação', () => {
+  const petrobras = extrair(criarEmissor('petrobras'));
+  const [petr3, petr4] = [ticker('PETR3'), ticker('PETR4')];
+  const catalogo = [petr3, petr4].reduce(
+    (parcial, codigo) =>
+      extrair(
+        parcial.com(codigo, 'acao').comEmissor(codigo, petrobras),
+      ),
+    CatalogoDeAtivos.vazio(),
+  );
+
+  it('dois tickers, a mesma empresa', () => {
+    expect([
+      catalogo.emissorDe(petr3),
+      catalogo.emissorDe(petr4),
+    ]).toEqual([ok(petrobras), ok(petrobras)]);
+  });
+
+  it('não conhece o emissor de um ativo sem ele', () => {
+    const vale3 = ticker('VALE3');
+    const semEmissor = catalogo.com(vale3, 'acao');
+
+    expect(semEmissor.emissorDe(vale3)).toEqual(
+      err({ tipo: 'emissor-desconhecido', ticker: vale3 }),
+    );
+  });
+
+  it('recusa o emissor de um ativo fora do catálogo', () => {
+    const fora = err({
+      tipo: 'ativo-fora-do-catalogo',
+      ticker: ticker('VALE3'),
+    });
+
+    expect(catalogo.comEmissor(ticker('VALE3'), petrobras)).toEqual(
+      fora,
+    );
+    expect(catalogo.emissorDe(ticker('VALE3'))).toEqual(fora);
+  });
+
+  it('guarda a classe ao incluir o emissor', () => {
+    expect(catalogo.classeDe(petr4)).toEqual(ok('acao'));
+  });
+});
+// #endregion
