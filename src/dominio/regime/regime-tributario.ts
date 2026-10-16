@@ -22,10 +22,16 @@ export type RegrasDeApuracao = Readonly<
   Record<NomeDaCategoria, RegraDeApuracao>
 >;
 
+// A retenção na fonte de cada provento, pela data do pagamento.
+export interface RegrasDeProventos {
+  readonly jcp: Aliquota;
+}
+
 export interface RegimeTributario {
   readonly nome: string;
   readonly vigencia: Vigencia;
   readonly apuracao: RegrasDeApuracao;
+  readonly proventos: RegrasDeProventos;
 }
 
 // A definição é o regime como a lei o escreve, com as datas em texto.
@@ -35,6 +41,7 @@ export interface DefinicaoDeRegime {
   readonly inicio: string;
   readonly fim?: string;
   readonly apuracao: RegrasDeApuracao;
+  readonly proventos: RegrasDeProventos;
 }
 // #endregion
 
@@ -43,12 +50,12 @@ export type ErroDeDefinicao = ErroDeDataDoCalendario | ErroDeVigencia;
 export function definirRegime(
   definicao: DefinicaoDeRegime,
 ): Result<RegimeTributario, ErroDeDefinicao> {
-  const { nome, inicio, fim, apuracao } = definicao;
+  const { nome, inicio, fim, apuracao, proventos } = definicao;
   const vigencia = vigenciaDe(inicio, fim);
   if (!vigencia.ok) {
     return vigencia;
   }
-  return ok({ nome, vigencia: vigencia.valor, apuracao });
+  return ok({ nome, vigencia: vigencia.valor, apuracao, proventos });
 }
 
 // Define todos os regimes, ou devolve o erro do primeiro que falhar.

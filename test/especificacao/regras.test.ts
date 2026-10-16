@@ -11,10 +11,6 @@ describe('R8 · dividendos · Capítulo 10', () => {
   );
 });
 
-describe('R9 · juros sobre capital próprio · Capítulo 10', () => {
-  it.todo('retém 17,5% na fonte sobre juros sobre capital próprio');
-});
-
 describe('R10 · prejuízo acumulado · Capítulo 11', () => {
   it.todo('compensa prejuízo apenas no mesmo grupo de compensação');
 });

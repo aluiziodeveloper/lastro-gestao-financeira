@@ -21,6 +21,11 @@ const apuracaoDaLei11033: RegrasDeApuracao = {
   etf: { aliquota: quinzePorCento },
 };
 
+// JCP retido na fonte: 15% até 2025 (Lei 9.249/1995, art. 9º, § 2º)
+// e 17,5% desde 1º/1/2026 (LC 224/2025, art. 8º, e art. 14, III).
+const proventosAte2025 = { jcp: quinzePorCento };
+const proventosDesde2026 = { jcp: Aliquota.de(175n, 1000n) };
+
 // O Lastro começa em 2024, quando a Lei 14.754/2023 passou a produzir
 // efeitos (art. 47, II). Uma data anterior não tem regime.
 export const definicoesDoLastro: readonly DefinicaoDeRegime[] = [
@@ -29,7 +34,13 @@ export const definicoesDoLastro: readonly DefinicaoDeRegime[] = [
     inicio: '2024-01-01',
     fim: '2026-01-01',
     apuracao: apuracaoDaLei11033,
+    proventos: proventosAte2025,
   },
-  { nome: '2026', inicio: '2026-01-01', apuracao: apuracaoDaLei11033 },
+  {
+    nome: '2026',
+    inicio: '2026-01-01',
+    apuracao: apuracaoDaLei11033,
+    proventos: proventosDesde2026,
+  },
 ];
 // #endregion

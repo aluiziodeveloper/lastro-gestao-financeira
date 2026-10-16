@@ -17,13 +17,18 @@ export class Aliquota implements ObjetoDeValor<Aliquota> {
     return new Aliquota(numerador, denominador);
   }
 
-  // A alíquota incide sobre o ganho; prejuízo não gera imposto. O
-  // imposto é arredondado ao centavo, meio para cima.
+  // A alíquota incide sobre o ganho; prejuízo não gera imposto.
   sobreGanho(resultado: Dinheiro): Dinheiro {
     if (!resultado.ehPositivo()) {
       return Dinheiro.deCentavos(0n);
     }
-    return resultado.multiplicarPorFracao(
+    return this.sobre(resultado);
+  }
+
+  // A alíquota sobre um valor, como a retenção na fonte sobre um
+  // provento, arredondada ao centavo, meio para cima.
+  sobre(valor: Dinheiro): Dinheiro {
+    return valor.multiplicarPorFracao(
       this.#numerador,
       this.#denominador,
       'meio-para-cima',

@@ -67,10 +67,12 @@ function definicao(
   inicio: string,
   fim?: string,
 ): DefinicaoDeRegime {
-  const [{ apuracao }] = definicoesDoLastro as [DefinicaoDeRegime];
+  const [{ apuracao, proventos }] = definicoesDoLastro as [
+    DefinicaoDeRegime,
+  ];
   return fim === undefined
-    ? { nome, inicio, apuracao }
-    : { nome, inicio, fim, apuracao };
+    ? { nome, inicio, apuracao, proventos }
+    : { nome, inicio, fim, apuracao, proventos };
 }
 
 const ate2026 = definicao('antigo', '2024-01-01', '2026-01-01');

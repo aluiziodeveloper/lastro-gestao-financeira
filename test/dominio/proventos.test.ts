@@ -3,11 +3,12 @@ import { describe, expect, it } from 'vitest';
 import { CatalogoDeAtivos } from '../../src/dominio/ativo.js';
 import { criarDataDoCalendario } from '../../src/dominio/data-do-calendario.js';
 import { Dinheiro } from '../../src/dominio/dinheiro.js';
-import {
-  type Dividendo,
-  type Provento,
-  tratarProvento,
+import type {
+  Dividendo,
+  Jcp,
+  Provento,
 } from '../../src/dominio/proventos/provento.js';
+import { tratarProvento } from '../../src/dominio/proventos/tratar-provento.js';
 import { err, ok } from '../../src/dominio/resultado.js';
 import { Ticker } from '../../src/dominio/ticker.js';
 import { extrair } from '../apoio/resultado.js';
@@ -56,6 +57,42 @@ describe('Proventos · dividendo', () => {
 });
 // #endregion
 
+function umJcp(pagamento: string, bruto: bigint): Jcp {
+  return { ...umDividendo(pagamento, bruto), tipo: 'jcp' };
+}
+
+// #region jcp-teste
+describe('R9 · juros sobre capital próprio, retidos na fonte', () => {
+  it.each([
+    ['2025-12-30', '15%', 185_18n],
+    ['2026-01-02', '17,5%', 216_05n],
+  ])('R$ 1.234,56 pagos em %s: %s', (pagamento, _aliquota, retido) => {
+    const jcp = umJcp(pagamento, 1_234_56n);
+
+    expect(tratarProvento(jcp, referencias)).toEqual(
+      ok({
+        provento: jcp,
+        tratamento: 'exclusivo-na-fonte',
+        retido: centavos(retido),
+        liquido: centavos(1_234_56n - retido),
+      }),
+    );
+  });
+
+  it('a alíquota é a da data do pagamento ou do crédito', () => {
+    const retidoEm = (pagamento: string) =>
+      extrair(
+        tratarProvento(umJcp(pagamento, 100_000_00n), referencias),
+      ).retido;
+
+    expect([retidoEm('2025-12-31'), retidoEm('2026-01-01')]).toEqual([
+      centavos(15_000_00n),
+      centavos(17_500_00n),
+    ]);
+  });
+});
+// #endregion
+
 describe('Proventos · dados que burlaram os tipos', () => {
   it('lança com um tipo de provento que a união não tem', () => {
     const intruso = {
@@ -64,7 +101,7 @@ describe('Proventos · dados que burlaram os tipos', () => {
     } as unknown as Provento;
 
     expect(() => tratarProvento(intruso, referencias)).toThrow(
-      'Caso não tratado: "bonificacao"',
+      'Caso não tratado: {"tipo":"bonificacao"',
     );
   });
 });
