@@ -1,6 +1,6 @@
 import type { MesDeApuracao } from '../apuracao/mes-de-apuracao.js';
 import type { DataDoCalendario } from '../data-do-calendario.js';
-import type { Dinheiro } from '../dinheiro.js';
+import { Dinheiro } from '../dinheiro.js';
 
 // #region darf-calculo
 // O DARF dos ganhos em bolsa da pessoa física: código de receita 6015
@@ -14,27 +14,46 @@ export interface Darf {
   readonly vencimento: DataDoCalendario;
 }
 
-// O que o mês manda recolher: um DARF ou nada. A união cresce no
-// próximo commit, com o valor abaixo do mínimo.
+// O que o mês manda recolher: um DARF, nada, ou um valor que espera
+// o mês seguinte por não chegar ao mínimo.
 export type Recolhimento =
   | { readonly tipo: 'darf'; readonly darf: Darf }
-  | { readonly tipo: 'sem-imposto' };
+  | { readonly tipo: 'sem-imposto' }
+  | { readonly tipo: 'abaixo-do-minimo'; readonly acumulado: Dinheiro };
+// #endregion
 
-// O valor é o imposto das categorias menos o imposto retido deduzido.
+// #region darf-minimo
+// Abaixo de R$ 10,00 não se recolhe: o valor soma ao do mês seguinte,
+// no mesmo código, até chegar a R$ 10,00, e é pago no prazo desse mês
+// (Lei 9.430/1996, art. 68, § 1º). O mínimo não depende do regime de
+// ganhos, e por isso não mora nele.
+export const valorMinimoDoDarf = Dinheiro.deCentavos(10_00n);
+
+const zero = Dinheiro.deCentavos(0n);
+
+// O valor é o imposto das categorias menos o imposto retido deduzido,
+// mais o que ficou pendente dos meses anteriores.
 export function recolher(
   periodo: MesDeApuracao,
   devido: Dinheiro,
+  pendente: Dinheiro,
   vencimento: DataDoCalendario,
 ): Recolhimento {
-  if (!devido.ehPositivo()) {
+  const valor = devido.somar(pendente);
+  if (!valor.ehPositivo()) {
     return { tipo: 'sem-imposto' };
   }
-  const darf: Darf = {
-    codigo: '6015',
-    periodo,
-    valor: devido,
-    vencimento,
-  };
+  if (valorMinimoDoDarf.excede(valor)) {
+    return { tipo: 'abaixo-do-minimo', acumulado: valor };
+  }
+  const darf: Darf = { codigo: '6015', periodo, valor, vencimento };
   return { tipo: 'darf', darf };
+}
+
+// O que fica pendente para o mês seguinte.
+export function pendenteApos(recolhimento: Recolhimento): Dinheiro {
+  return recolhimento.tipo === 'abaixo-do-minimo'
+    ? recolhimento.acumulado
+    : zero;
 }
 // #endregion

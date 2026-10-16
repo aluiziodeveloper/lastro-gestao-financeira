@@ -4,12 +4,13 @@ import type {
   ApuracaoDoMes,
   MovimentoDoMes,
 } from '../../src/dominio/apuracao/apuracao-do-mes.js';
+import { apurarMeses } from '../../src/dominio/apuracao/apuracao-dos-meses.js';
 import { apurarMes } from '../../src/dominio/apuracao/apuracao-mensal.js';
 import { estadoInicial } from '../../src/dominio/apuracao/estado-da-apuracao.js';
 import { CatalogoDeAtivos } from '../../src/dominio/ativo.js';
 import { Carteira } from '../../src/dominio/carteira.js';
 import { criarDataDoCalendario } from '../../src/dominio/data-do-calendario.js';
-import { recolher } from '../../src/dominio/darf/darf.js';
+import { pendenteApos, recolher } from '../../src/dominio/darf/darf.js';
 import { Dinheiro } from '../../src/dominio/dinheiro.js';
 import { criarIdDeCarteira } from '../../src/dominio/id-de-carteira.js';
 import type { Operacao } from '../../src/dominio/operacao.js';
@@ -139,7 +140,7 @@ describe('DARF: o valor descontado o imposto retido', () => {
 
   it('cobra o devido, depois de deduzido o retido', () => {
     expect(
-      recolher(mes('2026-06'), reais(190_00n), vencimento),
+      recolher(mes('2026-06'), reais(190_00n), reais(0n), vencimento),
     ).toEqual({
       tipo: 'darf',
       darf: {
@@ -152,7 +153,9 @@ describe('DARF: o valor descontado o imposto retido', () => {
   });
 
   it('nada a recolher quando o retido cobre todo o imposto', () => {
-    expect(recolher(mes('2026-06'), reais(0n), vencimento)).toEqual({
+    expect(
+      recolher(mes('2026-06'), reais(0n), reais(0n), vencimento),
+    ).toEqual({
       tipo: 'sem-imposto',
     });
   });
@@ -189,5 +192,122 @@ describe('DARF: o valor descontado o imposto retido', () => {
     expect(
       recolhimento.tipo === 'darf' && recolhimento.darf.valor,
     ).toEqual(reais(190_00n));
+  });
+});
+
+// #region darf-minimo-teste
+describe('DARF abaixo de R$ 10,00 (Lei 9.430, art. 68, § 1º)', () => {
+  // Maio: R$ 36,60 de lucro em FII, R$ 7,32 de imposto. Junho: R$ 20,00
+  // de lucro em FII, R$ 4,00.
+  const maio: MovimentoDoMes = {
+    mes: mes('2026-05'),
+    operacoes: compraEVenda('HGLG11', '2026-05', 10, 100_00n, 103_66n),
+    retencoes: [],
+  };
+  const junho: MovimentoDoMes = {
+    mes: mes('2026-06'),
+    operacoes: compraEVenda('HGLG11', '2026-06', 10, 100_00n, 102_00n),
+    retencoes: [],
+  };
+  const [depoisDeMaio, depoisDeJunho] = extrair(
+    apurarMeses([maio, junho], inicial, referencias),
+  ).apuracoes;
+
+  it('maio não emite o DARF de R$ 7,32', () => {
+    expect(depoisDeMaio?.recolhimento.tipo).toBe('abaixo-do-minimo');
+  });
+
+  it('junho emite R$ 11,32, a pagar até 31/7/2026', () => {
+    const { recolhimento } = depoisDeJunho ?? {};
+    const darf =
+      recolhimento?.tipo === 'darf' ? recolhimento.darf : undefined;
+
+    expect(darf?.valor).toEqual(reais(11_32n));
+    expect(darf?.vencimento).toBe('2026-07-31');
+  });
+});
+// #endregion
+
+describe('DARF: o mínimo, na fronteira e com o pendente', () => {
+  const vencimento = extrair(criarDataDoCalendario('2026-07-31'));
+  const junho = mes('2026-06');
+
+  it.each([
+    ['R$ 9,99 do mês', 9_99n, 0n, 'abaixo-do-minimo'],
+    ['R$ 10,00 do mês', 10_00n, 0n, 'darf'],
+    ['R$ 4,00 do mês e R$ 7,32 pendentes', 4_00n, 7_32n, 'darf'],
+    ['nada no mês e R$ 7,32 pendentes', 0n, 7_32n, 'abaixo-do-minimo'],
+    ['nada no mês e nada pendente', 0n, 0n, 'sem-imposto'],
+  ] as const)('%s: %s', (_caso, devido, pendente, tipo) => {
+    const recolhimento = recolher(
+      junho,
+      reais(devido),
+      reais(pendente),
+      vencimento,
+    );
+
+    expect(recolhimento.tipo).toBe(tipo);
+  });
+
+  it('o acumulado abaixo do mínimo é o que fica pendente', () => {
+    const abaixo = recolher(
+      junho,
+      reais(4_00n),
+      reais(3_32n),
+      vencimento,
+    );
+
+    expect(pendenteApos(abaixo)).toEqual(reais(7_32n));
+  });
+
+  it.each([
+    ['um DARF', 10_00n],
+    ['nada a recolher', 0n],
+  ])('depois de %s, nada fica pendente', (_caso, devido) => {
+    const recolhimento = recolher(
+      junho,
+      reais(devido),
+      reais(0n),
+      vencimento,
+    );
+
+    expect(pendenteApos(recolhimento)).toEqual(reais(0n));
+  });
+
+  it('o pendente atravessa o ano: dezembro paga em fevereiro', () => {
+    const dezembro: MovimentoDoMes = {
+      mes: mes('2026-12'),
+      operacoes: compraEVenda(
+        'HGLG11',
+        '2026-12',
+        10,
+        100_00n,
+        103_66n,
+      ),
+      retencoes: [],
+    };
+    const janeiro: MovimentoDoMes = {
+      mes: mes('2027-01'),
+      operacoes: compraEVenda(
+        'HGLG11',
+        '2027-01',
+        10,
+        100_00n,
+        102_00n,
+      ),
+      retencoes: [],
+    };
+
+    const virada = extrair(
+      apurarMeses([dezembro, janeiro], inicial, referencias),
+    );
+    const [, depoisDeJaneiro] = virada.apuracoes;
+    const { recolhimento } = depoisDeJaneiro ?? {};
+    const darf =
+      recolhimento?.tipo === 'darf' ? recolhimento.darf : undefined;
+
+    expect(darf?.valor).toEqual(reais(11_32n));
+    expect(darf?.vencimento).toBe('2027-02-26');
+    expect(virada.estado.darfPendente).toEqual(reais(0n));
   });
 });

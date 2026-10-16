@@ -6,22 +6,25 @@ import type { MesDeApuracao } from './mes-de-apuracao.js';
 
 // #region estado-da-apuracao
 // O que um mês entrega ao seguinte: o último mês apurado, a carteira,
-// o prejuízo e o imposto retido a compensar. O estado é um valor: cada
-// mês devolve um estado novo, e o do mês anterior continua o mesmo.
+// o prejuízo e o imposto retido a compensar e o valor do DARF que não
+// chegou ao mínimo. O estado é um valor: cada mês devolve um estado
+// novo, e o do mês anterior continua o mesmo.
 export interface EstadoDaApuracao {
   readonly apuradoAte?: MesDeApuracao;
   readonly carteira: Carteira;
   readonly prejuizo: PrejuizoAcumulado;
   readonly irrf: Dinheiro;
+  readonly darfPendente: Dinheiro;
 }
 
-// Antes do primeiro mês, nenhum mês foi apurado e não há prejuízo nem
-// imposto retido a compensar.
+// Antes do primeiro mês, nenhum mês foi apurado, e não há prejuízo,
+// imposto retido nem DARF pendente.
 export function estadoInicial(carteira: Carteira): EstadoDaApuracao {
   return {
     carteira,
     prejuizo: PrejuizoAcumulado.nenhum(),
     irrf: Dinheiro.deCentavos(0n),
+    darfPendente: Dinheiro.deCentavos(0n),
   };
 }
 
