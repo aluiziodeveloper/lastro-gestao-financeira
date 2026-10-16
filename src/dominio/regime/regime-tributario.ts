@@ -22,9 +22,24 @@ export type RegrasDeApuracao = Readonly<
   Record<NomeDaCategoria, RegraDeApuracao>
 >;
 
+// Uma fração exata, como 10/100 para 10% das cotas emitidas.
+export interface Fracao {
+  readonly numerador: bigint;
+  readonly denominador: bigint;
+}
+
+// O que o fundo e o investidor cumprem para que os rendimentos sejam
+// isentos; sem isso, a fonte retém pela alíquota.
+export interface RequisitosDaIsencaoDoFii {
+  readonly minimoDeCotistas: number;
+  readonly participacaoAbaixoDe: Fracao;
+  readonly aliquotaSemIsencao: Aliquota;
+}
+
 // A retenção na fonte de cada provento, pela data do pagamento.
 export interface RegrasDeProventos {
   readonly jcp: Aliquota;
+  readonly fii: RequisitosDaIsencaoDoFii;
 }
 
 export interface RegimeTributario {

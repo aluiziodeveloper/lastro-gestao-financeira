@@ -1,15 +1,20 @@
 import { describe, expect, it } from 'vitest';
 
-import { CatalogoDeAtivos } from '../../src/dominio/ativo.js';
+import {
+  CatalogoDeAtivos,
+  type SituacaoDoFundo,
+} from '../../src/dominio/ativo.js';
 import { criarDataDoCalendario } from '../../src/dominio/data-do-calendario.js';
 import { Dinheiro } from '../../src/dominio/dinheiro.js';
 import type {
   Dividendo,
   Jcp,
   Provento,
+  RendimentoDeFii,
 } from '../../src/dominio/proventos/provento.js';
 import { tratarProvento } from '../../src/dominio/proventos/tratar-provento.js';
 import { err, ok } from '../../src/dominio/resultado.js';
+import { Quantidade } from '../../src/dominio/quantidade.js';
 import { Ticker } from '../../src/dominio/ticker.js';
 import { extrair } from '../apoio/resultado.js';
 import { referenciasCom } from './referencias.js';
@@ -89,6 +94,83 @@ describe('R9 · juros sobre capital próprio, retidos na fonte', () => {
       centavos(15_000_00n),
       centavos(17_500_00n),
     ]);
+  });
+});
+// #endregion
+
+const hglg11 = extrair(Ticker.criar('HGLG11'));
+
+function fundo(campos: Partial<SituacaoDoFundo> = {}): SituacaoDoFundo {
+  return {
+    desde: extrair(criarDataDoCalendario('2024-01-01')),
+    negociacao: 'bolsa-ou-balcao-organizado',
+    cotistas: 100,
+    cotasEmitidas: extrair(Quantidade.criar(1_000)),
+    ...campos,
+  };
+}
+
+function referenciasDoFundo(situacao: SituacaoDoFundo) {
+  const catalogo = CatalogoDeAtivos.vazio().com(hglg11, 'fii');
+  return referenciasCom(
+    extrair(catalogo.comSituacaoDoFundo(hglg11, situacao)),
+  );
+}
+
+function umRendimento(cotas: number): RendimentoDeFii {
+  return {
+    tipo: 'rendimento-de-fii',
+    ticker: hglg11,
+    pagamento: extrair(criarDataDoCalendario('2026-03-13')),
+    bruto: centavos(850_00n),
+    cotas: extrair(Quantidade.criar(cotas)),
+  };
+}
+
+function tratamentoDe(cotas: number, situacao: SituacaoDoFundo) {
+  return extrair(
+    tratarProvento(umRendimento(cotas), referenciasDoFundo(situacao)),
+  );
+}
+
+// #region fii-teste
+describe('R7 · rendimentos de FII · isenção com requisitos', () => {
+  it('isenta com 100 cotistas e 99 das 1.000 cotas, em bolsa', () => {
+    expect(tratamentoDe(99, fundo())).toMatchObject({
+      tratamento: 'isento',
+      retido: centavos(0n),
+    });
+  });
+
+  it.each([
+    ['com 99 cotistas', 99, fundo({ cotistas: 99 })],
+    ['com 100 das 1.000 cotas, 10%', 100, fundo()],
+    ['fora de bolsa', 99, fundo({ negociacao: 'outra' })],
+  ])(
+    'retém 20%%: R$ 850,00 dão R$ 170,00 %s',
+    (_caso, cotas, situacao) => {
+      expect(tratamentoDe(cotas, situacao)).toMatchObject({
+        tratamento: 'exclusivo-na-fonte',
+        retido: centavos(170_00n),
+        liquido: centavos(680_00n),
+      });
+    },
+  );
+
+  it('não trata sem conhecer a situação do fundo na data', () => {
+    const deAbril = fundo({
+      desde: extrair(criarDataDoCalendario('2026-04-01')),
+    });
+
+    expect(
+      tratarProvento(umRendimento(10), referenciasDoFundo(deAbril)),
+    ).toEqual(
+      err({
+        tipo: 'situacao-do-fundo-desconhecida',
+        ticker: hglg11,
+        data: '2026-03-13',
+      }),
+    );
   });
 });
 // #endregion

@@ -1,5 +1,6 @@
 import type { DataDoCalendario } from '../data-do-calendario.js';
 import type { Dinheiro } from '../dinheiro.js';
+import type { Quantidade } from '../quantidade.js';
 import type { Ticker } from '../ticker.js';
 
 // #region provento-uniao
@@ -21,7 +22,17 @@ export interface Jcp {
   readonly bruto: Dinheiro;
 }
 
-export type Provento = Dividendo | Jcp;
+// Rendimento de FII: as cotas são as que o investidor tinha quando
+// ganhou o direito ao rendimento.
+export interface RendimentoDeFii {
+  readonly tipo: 'rendimento-de-fii';
+  readonly ticker: Ticker;
+  readonly pagamento: DataDoCalendario;
+  readonly bruto: Dinheiro;
+  readonly cotas: Quantidade;
+}
+
+export type Provento = Dividendo | Jcp | RendimentoDeFii;
 
 // O que o provento deixa ao investidor: quanto a fonte reteve e
 // quanto sobrou, com o nome do tratamento que a lei lhe dá.

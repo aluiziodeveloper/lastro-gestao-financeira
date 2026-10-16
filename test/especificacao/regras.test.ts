@@ -1,10 +1,6 @@
 import { describe, it } from 'vitest';
 
 // #region especificacao-regras
-describe('R7 · rendimentos de FII · Capítulo 10', () => {
-  it.todo('isenta rendimentos de FII que cumprem os requisitos legais');
-});
-
 describe('R8 · dividendos · Capítulo 10', () => {
   it.todo(
     'retém 10% dos dividendos acima de R$ 50.000,00 por empresa no mês',

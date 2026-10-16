@@ -1,5 +1,6 @@
 import type { RegimeTributario } from '../regime/regime-tributario.js';
 import type { Jcp, TratamentoDoProvento } from './provento.js';
+import { exclusivoNaFonte } from './tratamentos.js';
 
 // #region jcp-retencao
 // O JCP é tributado só na fonte, sem ajuste na declaração, pela
@@ -8,12 +9,6 @@ export function tratarJcp(
   jcp: Jcp,
   regime: RegimeTributario,
 ): TratamentoDoProvento {
-  const retido = regime.proventos.jcp.sobre(jcp.bruto);
-  return {
-    provento: jcp,
-    tratamento: 'exclusivo-na-fonte',
-    retido,
-    liquido: jcp.bruto.subtrair(retido),
-  };
+  return exclusivoNaFonte(jcp, regime.proventos.jcp);
 }
 // #endregion
