@@ -161,9 +161,27 @@ describe('desafio · resumo anual dos proventos', () => {
     );
   });
 
+  it('recusa o dividendo de empresa sem emissor', () => {
+    const semEmissor = referenciasCom(
+      catalogo.com(ticker('BBAS3'), 'acao'),
+    );
+    const proventos = [
+      dividendo('BBAS3', '2026-03-16', 1_00n),
+      dividendo('BBAS3', '2026-04-16', 1_00n),
+    ];
+
+    expect(resumoDoAno(proventos, 2026, semEmissor)).toEqual(
+      err({ tipo: 'emissor-desconhecido', ticker: ticker('BBAS3') }),
+    );
+  });
+
   it('recusa um ano sem regime', () => {
     expect(
-      resumoDoAno([jcp('2023-06-30', 1_00n)], 2023, referencias),
+      resumoDoAno(
+        [jcp('2023-06-30', 1_00n), jcp('2023-12-30', 1_00n)],
+        2023,
+        referencias,
+      ),
     ).toEqual(err({ tipo: 'sem-regime-vigente', data: '2023-06-30' }));
   });
 });

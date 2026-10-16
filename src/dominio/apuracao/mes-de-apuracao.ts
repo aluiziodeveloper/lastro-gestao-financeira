@@ -35,6 +35,14 @@ export class MesDeApuracao implements ObjetoDeValor<MesDeApuracao> {
     return ok(new MesDeApuracao(primeiroDia.valor));
   }
 
+  // O mês de uma data que já existe. O dia 1 desse mês também existe,
+  // e por isso este construtor não falha.
+  static de(data: DataDoCalendario): MesDeApuracao {
+    return new MesDeApuracao(
+      `${data.slice(0, 8)}01` as DataDoCalendario,
+    );
+  }
+
   primeiroDia(): DataDoCalendario {
     return this.#primeiroDia;
   }
