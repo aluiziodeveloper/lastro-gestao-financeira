@@ -47,9 +47,8 @@ function apurar(
   doMes: readonly Operacao[],
 ) {
   return apurarMes(
-    mes('2026-03'),
     estadoInicial(carteiraCom(antes)),
-    doMes,
+    { mes: mes('2026-03'), operacoes: doMes, retencoes: [] },
     referenciasCom(catalogo),
   );
 }
@@ -322,9 +321,8 @@ describe('Apuração mensal: erros', () => {
 
     expect(() =>
       apurarMes(
-        mes('2026-03'),
         estadoInicial(carteiraCom([compra])),
-        [venda],
+        { mes: mes('2026-03'), operacoes: [venda], retencoes: [] },
         referenciasCom(comBdr),
       ),
     ).toThrow('Caso não tratado');
@@ -335,9 +333,8 @@ describe('Apuração mensal: erros', () => {
 describe('Apuração: a lei do mês', () => {
   it('recusa um mês sem regime, como dezembro de 2023', () => {
     const apuracao = apurarMes(
-      mes('2023-12'),
       estadoInicial(carteiraCom([])),
-      [],
+      { mes: mes('2023-12'), operacoes: [], retencoes: [] },
       referenciasCom(catalogo),
     );
 

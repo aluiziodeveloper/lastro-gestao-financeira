@@ -1,6 +1,12 @@
 import type { ErroDeCatalogo } from '../ativo.js';
 import type { Dinheiro } from '../dinheiro.js';
 import type { ErroDeCarteira } from '../erros.js';
+import type {
+  DeducaoDoIrrf,
+  ErroDeRetencao,
+  ImpostoRetido,
+} from '../irrf/imposto-retido.js';
+import type { Operacao } from '../operacao.js';
 import type { ErroSemRegime } from '../regime/regimes-tributarios.js';
 import type {
   ErroDeSequencia,
@@ -33,11 +39,21 @@ export interface ResultadoDaCategoria {
   readonly imposto: Dinheiro;
 }
 
+// O que se apura num mês: as operações e o imposto retido nas notas.
+// Um mês sem operação entra com as listas vazias: ele também avança o
+// estado.
+export interface MovimentoDoMes {
+  readonly mes: MesDeApuracao;
+  readonly operacoes: readonly Operacao[];
+  readonly retencoes: readonly ImpostoRetido[];
+}
+
 // A apuração devolve também o estado no fim do mês, de onde parte a
 // apuração do mês seguinte.
 export interface ApuracaoDoMes {
   readonly mes: MesDeApuracao;
   readonly categorias: readonly ResultadoDaCategoria[];
+  readonly irrf: DeducaoDoIrrf;
   readonly estado: EstadoDaApuracao;
 }
 
@@ -46,5 +62,6 @@ export type ErroDeApuracao =
   | ErroDeCatalogo
   | ErroDeSeparacao
   | ErroSemRegime
-  | ErroDeSequencia;
+  | ErroDeSequencia
+  | ErroDeRetencao;
 // #endregion

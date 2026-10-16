@@ -73,3 +73,13 @@ describe('MesDeApuracao: o mês seguinte', () => {
   });
 });
 // #endregion
+
+describe('MesDeApuracao: dezembro', () => {
+  it.each([
+    ['2026-12', true],
+    ['2026-11', false],
+    ['2027-01', false],
+  ])('%s é dezembro: %s', (texto, esperado) => {
+    expect(mes(texto).ehDezembro()).toBe(esperado);
+  });
+});

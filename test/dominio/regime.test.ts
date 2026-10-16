@@ -92,9 +92,8 @@ function impostoDaCena(ano: string, regimes: RegimesTributarios) {
   const { antes, doMes } = cenaEm(ano);
   const apuracao = extrair(
     apurarMes(
-      mes(`${ano}-03`),
       estadoInicial(carteiraCom(antes)),
-      doMes,
+      { mes: mes(`${ano}-03`), operacoes: doMes, retencoes: [] },
       {
         catalogo,
         regimes,
@@ -112,9 +111,8 @@ describe('Antes e depois das viradas de 2024 e de 2026', () => {
   it('dezembro de 2023 não tem regime; janeiro de 2024 tem', () => {
     const apurar = (texto: string) =>
       apurarMes(
-        mes(texto),
         estadoInicial(carteiraCom([])),
-        [],
+        { mes: mes(texto), operacoes: [], retencoes: [] },
         referencias,
       ).ok;
 

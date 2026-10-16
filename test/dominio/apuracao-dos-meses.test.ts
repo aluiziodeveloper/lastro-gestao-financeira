@@ -1,9 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  apurarMeses,
-  type MesComOperacoes,
-} from '../../src/dominio/apuracao/apuracao-dos-meses.js';
+import type { MovimentoDoMes } from '../../src/dominio/apuracao/apuracao-do-mes.js';
+import { apurarMeses } from '../../src/dominio/apuracao/apuracao-dos-meses.js';
 import { estadoInicial } from '../../src/dominio/apuracao/estado-da-apuracao.js';
 import { CatalogoDeAtivos } from '../../src/dominio/ativo.js';
 import { Carteira } from '../../src/dominio/carteira.js';
@@ -31,7 +29,7 @@ const inicial = estadoInicial(
 );
 
 // Janeiro: R$ 28.000,00 vendidos com R$ 2.000,00 de prejuízo.
-const janeiro: MesComOperacoes = {
+const janeiro: MovimentoDoMes = {
   mes: mes('2026-01'),
   operacoes: [
     umaCompra({
@@ -47,16 +45,18 @@ const janeiro: MesComOperacoes = {
       precoEmCentavos: 14_00n,
     }),
   ],
+  retencoes: [],
 };
 
 // Fevereiro: nenhuma operação.
-const fevereiro: MesComOperacoes = {
+const fevereiro: MovimentoDoMes = {
   mes: mes('2026-02'),
   operacoes: [],
+  retencoes: [],
 };
 
 // Março: R$ 28.000,00 vendidos com R$ 3.000,00 de lucro.
-const marco: MesComOperacoes = {
+const marco: MovimentoDoMes = {
   mes: mes('2026-03'),
   operacoes: [
     umaCompra({
@@ -72,6 +72,7 @@ const marco: MesComOperacoes = {
       precoEmCentavos: 28_00n,
     }),
   ],
+  retencoes: [],
 };
 
 // #region dobra-dos-meses-teste

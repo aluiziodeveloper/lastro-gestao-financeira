@@ -139,9 +139,8 @@ describe('Apuração mensal: casos resolvidos à mão', () => {
   it.each(casos)('$caso', ({ antes, doMes, imposto }) => {
     const apuracao = extrair(
       apurarMes(
-        mes('2026-03'),
         estadoInicial(carteiraCom(antes)),
-        doMes,
+        { mes: mes('2026-03'), operacoes: doMes, retencoes: [] },
         referenciasCom(catalogo),
       ),
     );

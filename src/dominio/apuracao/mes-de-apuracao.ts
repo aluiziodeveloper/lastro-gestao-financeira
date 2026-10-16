@@ -51,6 +51,11 @@ export class MesDeApuracao implements ObjetoDeValor<MesDeApuracao> {
     return this.#contagem() === anterior.#contagem() + 1;
   }
 
+  // O último mês do ano, em que saldos anuais se encerram.
+  ehDezembro(): boolean {
+    return this.#primeiroDia.slice(5, 7) === '12';
+  }
+
   // Os meses contados desde o ano zero.
   #contagem(): number {
     const ano = Number(this.#primeiroDia.slice(0, 4));

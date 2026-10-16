@@ -1,22 +1,14 @@
 import type { DadosDeReferencia } from '../dados-de-referencia.js';
-import type { Operacao } from '../operacao.js';
 import { ok, type Result } from '../resultado.js';
 import type {
   ApuracaoDoMes,
   ErroDeApuracao,
+  MovimentoDoMes,
 } from './apuracao-do-mes.js';
 import { apurarMes } from './apuracao-mensal.js';
 import type { EstadoDaApuracao } from './estado-da-apuracao.js';
-import type { MesDeApuracao } from './mes-de-apuracao.js';
 
 // #region dobra-dos-meses
-// Um mês e as operações dele. Um mês sem operação entra com a lista
-// vazia: ele também avança o estado.
-export interface MesComOperacoes {
-  readonly mes: MesDeApuracao;
-  readonly operacoes: readonly Operacao[];
-}
-
 export interface ApuracaoDosMeses {
   readonly apuracoes: readonly ApuracaoDoMes[];
   readonly estado: EstadoDaApuracao;
@@ -26,7 +18,7 @@ export interface ApuracaoDosMeses {
 // devolveu. O primeiro erro interrompe a sequência, como no Result do
 // Capítulo 9.
 export function apurarMeses(
-  meses: readonly MesComOperacoes[],
+  movimentos: readonly MovimentoDoMes[],
   inicial: EstadoDaApuracao,
   referencias: DadosDeReferencia,
 ): Result<ApuracaoDosMeses, ErroDeApuracao> {
@@ -34,10 +26,10 @@ export function apurarMeses(
     apuracoes: [],
     estado: inicial,
   });
-  return meses.reduce(
-    (andamento, { mes, operacoes }) =>
+  return movimentos.reduce(
+    (andamento, movimento) =>
       andamento.ok
-        ? seguir(andamento.valor, mes, operacoes, referencias)
+        ? seguir(andamento.valor, movimento, referencias)
         : andamento,
     inicio,
   );
@@ -45,11 +37,10 @@ export function apurarMeses(
 
 function seguir(
   { apuracoes, estado }: ApuracaoDosMeses,
-  mes: MesDeApuracao,
-  operacoes: readonly Operacao[],
+  movimento: MovimentoDoMes,
   referencias: DadosDeReferencia,
 ): Result<ApuracaoDosMeses, ErroDeApuracao> {
-  const apuracao = apurarMes(mes, estado, operacoes, referencias);
+  const apuracao = apurarMes(estado, movimento, referencias);
   if (!apuracao.ok) {
     return apuracao;
   }
