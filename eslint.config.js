@@ -44,6 +44,13 @@ export default defineConfig(
           format: ['camelCase'],
           leadingUnderscore: 'allow',
         },
+        // Chaves entre aspas vêm do domínio, como 'acoes-comum', e não
+        // são nomes de variável: o formato não se aplica a elas.
+        {
+          selector: 'objectLiteralProperty',
+          modifiers: ['requiresQuotes'],
+          format: null,
+        },
       ],
     },
   },

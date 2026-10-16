@@ -89,3 +89,43 @@ describe('Vigencia: construção', () => {
     );
   });
 });
+
+describe('Vigencia: comparação com outra', () => {
+  const de2026 = Vigencia.desde(data('2026-01-01'));
+
+  it('começa antes só se o início for anterior', () => {
+    const doisAnos = entre('2024-01-01', '2026-01-01');
+
+    expect(doisAnos.comecaAntesDe(de2026)).toBe(true);
+    expect(de2026.comecaAntesDe(doisAnos)).toBe(false);
+    expect(
+      de2026.comecaAntesDe(Vigencia.desde(data('2026-01-01'))),
+    ).toBe(false);
+  });
+
+  it.each([
+    ['2026-01-01', true],
+    ['2026-01-02', false],
+    ['2026-01-10', false],
+  ])('começar em %s: dia 1 é %s', (texto, esperado) => {
+    expect(Vigencia.desde(data(texto)).comecaNoDia1()).toBe(esperado);
+  });
+
+  it.each([
+    ['2026-01-01', 'contiguas'],
+    ['2025-12-31', 'sobrepostas'],
+    ['2026-01-02', 'com-lacuna'],
+  ])('fim em 2026-01-01 e seguinte em %s: %s', (texto, ligacao) => {
+    const anterior = entre('2024-01-01', '2026-01-01');
+
+    expect(anterior.ligacaoCom(Vigencia.desde(data(texto)))).toBe(
+      ligacao,
+    );
+  });
+
+  it('sem fim, qualquer seguinte se sobrepõe', () => {
+    expect(de2026.ligacaoCom(Vigencia.desde(data('2030-01-01')))).toBe(
+      'sobrepostas',
+    );
+  });
+});
