@@ -90,6 +90,24 @@ O código de saída diz como foi: `0`, feito; `1`, o Lastro recusou o pedido, co
 
 <!-- #endregion -->
 
+<!-- #region uso-docker -->
+
+### API com Docker
+
+O `compose.yaml` sobe a API e um Postgres 17, com os dados num volume. Com o Docker instalado:
+
+```sh
+docker compose up -d
+curl -s -X POST localhost:3000/carteiras/minha/operacoes \
+  -H 'content-type: application/json' \
+  -d @exemplos/cap15/operacoes-abril.json
+curl -s localhost:3000/carteiras/minha/relatorios/2026-04
+```
+
+`docker compose down` para os contêineres e mantém os dados; `docker compose down -v` apaga também o volume. A imagem sozinha, sem o Compose, precisa da variável `LASTRO_POSTGRES_URL` com o endereço de um Postgres.
+
+<!-- #endregion -->
+
 ## O que já foi implementado
 
 As doze regras de negócio do Lastro estão descritas em `test/especificacao/regras.test.ts`. Cada regra fica pendente até o capítulo que a implementa; rode `npm test` para ver quais já saíram da lista.

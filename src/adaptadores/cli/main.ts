@@ -4,12 +4,12 @@ import { readFileSync } from 'node:fs';
 import { err, ok } from '../../dominio/resultado.js';
 import { repositorioSqlite } from '../sql/sqlite.js';
 import { executar } from './executar.js';
-import { referenciasDaCli } from './referencias.js';
+import { referenciasDoLastro } from '../referencias.js';
 
 // #region raiz-de-composicao
 // A raiz de composição: o único lugar que escolhe os adaptadores de
 // verdade e os entrega à CLI. O resto do Lastro recebe o que usa.
-const referencias = referenciasDaCli();
+const referencias = referenciasDoLastro();
 if (!referencias.ok) {
   throw new Error('Os regimes tributários do Lastro estão inválidos.');
 }

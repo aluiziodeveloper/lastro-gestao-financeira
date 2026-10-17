@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { executar } from '../../../src/adaptadores/cli/executar.js';
-import { referenciasDaCli } from '../../../src/adaptadores/cli/referencias.js';
+import { referenciasDoLastro } from '../../../src/adaptadores/referencias.js';
 import { repositorioEmMemoria } from '../../../src/adaptadores/memoria/repositorio.js';
 import { err, ok } from '../../../src/dominio/resultado.js';
 import { extrair } from '../../apoio/resultado.js';
@@ -25,7 +25,7 @@ function terminal(arquivos: Record<string, string> = {}) {
         ? ok(arquivos[caminho] ?? '')
         : err(`Não foi possível ler ${caminho}.`),
     escrever: (linha: string) => escritas.push(linha),
-    referencias: extrair(referenciasDaCli()),
+    referencias: extrair(referenciasDoLastro()),
   };
   const rodar = (linha: string) => executar(linha.split(' '), ambiente);
   return { rodar, escritas };

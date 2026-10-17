@@ -1,0 +1,9 @@
+# O que não entra no contexto da construção: dependências e
+# compilados da máquina, relatórios, bancos locais e o histórico.
+node_modules
+dist
+coverage
+reports
+.stryker-tmp
+.git
+*.db

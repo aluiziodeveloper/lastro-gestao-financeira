@@ -1,0 +1,40 @@
+{
+  "operacoes": [
+    {
+      "id": "op-1",
+      "tipo": "compra",
+      "data": "2026-02-02",
+      "ticker": "PETR4",
+      "quantidade": 1000,
+      "precoEmCentavos": "2200",
+      "custosEmCentavos": "0"
+    },
+    {
+      "id": "op-2",
+      "tipo": "compra",
+      "data": "2026-04-02",
+      "ticker": "HGLG11",
+      "quantidade": 100,
+      "precoEmCentavos": "16000",
+      "custosEmCentavos": "0"
+    },
+    {
+      "id": "op-3",
+      "tipo": "venda",
+      "data": "2026-04-15",
+      "ticker": "PETR4",
+      "quantidade": 1000,
+      "precoEmCentavos": "2500",
+      "custosEmCentavos": "0"
+    },
+    {
+      "id": "op-4",
+      "tipo": "venda",
+      "data": "2026-04-15",
+      "ticker": "HGLG11",
+      "quantidade": 100,
+      "precoEmCentavos": "13000",
+      "custosEmCentavos": "0"
+    }
+  ]
+}

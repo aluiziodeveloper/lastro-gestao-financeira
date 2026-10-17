@@ -1,0 +1,29 @@
+# O Lastro com o banco: o Compose sobe o Postgres, espera que ele
+# aceite conexões e só então sobe a API, que o encontra pelo nome do
+# serviço, banco. Os dados ficam num volume e sobrevivem ao down.
+services:
+  banco:
+    image: postgres:17
+    environment:
+      POSTGRES_PASSWORD: lastro
+    volumes:
+      - dados:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD', 'pg_isready', '-h', 'localhost', '-U', 'postgres']
+      interval: 2s
+      timeout: 5s
+      retries: 15
+
+  api:
+    build: .
+    environment:
+      LASTRO_POSTGRES_URL: postgres://postgres:lastro@banco/postgres
+      PORTA: '3000'
+    ports:
+      - '3000:3000'
+    depends_on:
+      banco:
+        condition: service_healthy
+
+volumes:
+  dados:
