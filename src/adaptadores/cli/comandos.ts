@@ -1,6 +1,7 @@
 import { basename } from 'node:path';
 
 import type { RepositorioDeCarteiras } from '../../aplicacao/portas.js';
+import { posicaoDaCarteira } from '../../aplicacao/posicao-da-carteira.js';
 import { registrarOperacoes } from '../../aplicacao/registrar-operacoes.js';
 import { relatorioDoMesDaCarteira } from '../../aplicacao/relatorio-da-carteira.js';
 import { MesDeApuracao } from '../../dominio/apuracao/mes-de-apuracao.js';
@@ -56,14 +57,29 @@ export async function relatorio(
 }
 
 // #region exportar
-// Desafio do Capítulo 15: a posição em CSV, no formato do extrato:
-// o cabeçalho Ativo;Quantidade;Custo total e uma linha por ativo, com
-// o custo em reais sem o símbolo. Os testes estão em
-// test/adaptadores/cli/exportar.test.ts.
-export function exportar(
+// A posição em CSV, no formato do extrato: o cabeçalho e uma linha por
+// ativo, na ordem em que entrou na carteira, com o custo em reais sem
+// o símbolo. Uma carteira que o histórico não reconstitui é recusada.
+export async function exportar(
   repositorio: RepositorioDeCarteiras,
   id: IdDeCarteira,
 ): Promise<Linhas> {
-  throw new Error(`Desafio do Capítulo 15: exporte ${id}.`);
+  const carteira = await posicaoDaCarteira(repositorio, id);
+  if (!carteira.ok) {
+    return err(`Recusado: ${carteira.erro.tipo}.`);
+  }
+  const linhas = carteira.valor
+    .ativos()
+    .map((ticker) =>
+      [
+        ticker.paraTexto(),
+        String(carteira.valor.quantidadeDe(ticker)),
+        carteira.valor
+          .custoTotalDe(ticker)
+          .emReais()
+          .replace('R$ ', ''),
+      ].join(';'),
+    );
+  return ok(['Ativo;Quantidade;Custo total', ...linhas]);
 }
 // #endregion

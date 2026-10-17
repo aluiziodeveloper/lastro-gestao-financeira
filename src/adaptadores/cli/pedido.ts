@@ -7,7 +7,7 @@ import { err, ok, type Result } from '../../dominio/resultado.js';
 // as opções (--carteira x) dos argumentos soltos (o comando e o alvo);
 // no modo estrito, uma opção desconhecida lança TypeError.
 export interface Pedido {
-  readonly comando: 'importar' | 'relatorio';
+  readonly comando: 'importar' | 'relatorio' | 'exportar';
   readonly alvo: string;
   readonly carteira: string;
   readonly banco: string;
@@ -15,7 +15,8 @@ export interface Pedido {
 
 export const uso = `Uso:
   lastro importar <extrato.csv> --carteira <id> --banco <arquivo>
-  lastro relatorio <AAAA-MM> --carteira <id> --banco <arquivo>`;
+  lastro relatorio <AAAA-MM> --carteira <id> --banco <arquivo>
+  lastro exportar --carteira <id> --banco <arquivo>`;
 
 export function lerPedido(
   argumentos: readonly string[],
@@ -27,12 +28,17 @@ export function lerPedido(
   const { positionals, values } = lido.valor;
   const [comando, alvo, ...sobra] = positionals;
   const { carteira, banco } = values;
-  const conhecido = comando === 'importar' || comando === 'relatorio';
-  if (!conhecido || alvo === undefined || sobra.length > 0) {
+  const conhecido =
+    comando === 'importar' ||
+    comando === 'relatorio' ||
+    comando === 'exportar';
+  // exportar não leva alvo; os outros dois levam.
+  const alvoCerto = (alvo === undefined) === (comando === 'exportar');
+  if (!conhecido || !alvoCerto || sobra.length > 0) {
     return err('uso');
   }
   return carteira !== undefined && banco !== undefined
-    ? ok({ comando, alvo, carteira, banco })
+    ? ok({ comando, alvo: alvo ?? '', carteira, banco })
     : err('uso');
 }
 // #endregion

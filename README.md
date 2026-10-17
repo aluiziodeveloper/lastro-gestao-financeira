@@ -86,6 +86,13 @@ node dist/adaptadores/cli/main.js relatorio 2026-04 \
   --carteira minha --banco lastro.db
 ```
 
+A posição de cada ativo sai em CSV, no formato do extrato:
+
+```sh
+node dist/adaptadores/cli/main.js exportar \
+  --carteira minha --banco lastro.db
+```
+
 O código de saída diz como foi: `0`, feito; `1`, o Lastro recusou o pedido, com o motivo na saída; `2`, o comando não seguiu o uso.
 
 <!-- #endregion -->

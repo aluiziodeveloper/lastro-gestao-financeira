@@ -5,7 +5,12 @@ import {
   type IdDeCarteira,
 } from '../../dominio/id-de-carteira.js';
 import type { Result } from '../../dominio/resultado.js';
-import { importar, type Linhas, relatorio } from './comandos.js';
+import {
+  exportar,
+  importar,
+  type Linhas,
+  relatorio,
+} from './comandos.js';
 import { lerPedido, type Pedido, uso } from './pedido.js';
 
 // O que a CLI usa do mundo de fora, entregue por quem a monta: o
@@ -46,6 +51,9 @@ async function rodar(
 ): Promise<Linhas> {
   if (comando === 'relatorio') {
     return relatorio(abrir(banco), referencias, id, alvo);
+  }
+  if (comando === 'exportar') {
+    return exportar(abrir(banco), id);
   }
   const texto = ler(alvo);
   return texto.ok
