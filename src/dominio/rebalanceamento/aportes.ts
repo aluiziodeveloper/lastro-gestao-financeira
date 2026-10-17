@@ -7,10 +7,13 @@ import {
 } from '../classe-de-ativo.js';
 import type { Dinheiro } from '../dinheiro.js';
 import { cemPorCento } from '../mercado/pontos-base.js';
-import type { PoliticaDeRebalanceamento } from './politica.js';
+import type {
+  PoliticaDeRebalanceamento,
+  Representantes,
+} from './politica.js';
+import { comOrdem, ordemDe } from './quantidades.js';
 import {
   depoisDasVendas,
-  nenhumValor,
   propostaVazia,
   type Sugestao,
   totalDe,
@@ -28,30 +31,45 @@ interface Falta {
 
 // Heurística gulosa: o aporte vai às classes abaixo do alvo, a de
 // maior falta primeiro, cada uma até o seu alvo calculado sobre o
-// total com o aporte. Comprar não gera imposto, e nada se vende.
+// total com o aporte, em unidades inteiras do representante. O que
+// não forma uma unidade passa à classe seguinte, e o que sobra no fim
+// fica em caixa. Comprar não gera imposto, e nada se vende.
 export function porAporte(
   composicao: Composicao,
   alocacao: AlocacaoAlvo,
   aporte: Dinheiro,
+  representantes: Representantes,
 ): Sugestao {
   const total = composicao.total.somar(aporte);
-  const faltas = classesDeAtivo
+  return classesDeAtivo
     .map((classe) => faltaDe(classe, composicao, alocacao, total))
-    .filter(({ falta }) => falta.ehPositivo())
-    .toSorted(maiorFaltaPrimeiro);
-  const { compras, restante } = faltas.reduce(
-    (atual, { classe, falta }) => {
-      const valor = falta.excede(atual.restante)
-        ? atual.restante
-        : falta;
-      return {
-        compras: { ...atual.compras, [classe]: valor },
-        restante: atual.restante.subtrair(valor),
-      };
-    },
-    { compras: nenhumValor, restante: aporte },
-  );
-  return { ...propostaVazia, compras, caixa: restante };
+    .toSorted(maiorFaltaPrimeiro)
+    .reduce((atual, falta) => comprar(atual, falta, representantes), {
+      ...propostaVazia,
+      caixa: aporte,
+    });
+}
+
+// Uma classe recebe até a sua falta, do que ainda há em caixa. A que
+// está no alvo ou acima dele, ou que chega com o caixa vazio, não
+// compra.
+function comprar(
+  atual: Sugestao,
+  { classe, falta }: Falta,
+  representantes: Representantes,
+): Sugestao {
+  const valor = falta.excede(atual.caixa) ? atual.caixa : falta;
+  const representante = representantes[classe];
+  if (!valor.ehPositivo()) {
+    return atual;
+  }
+  if (representante === undefined) {
+    const semRepresentante = [...atual.semRepresentante, classe];
+    return { ...atual, semRepresentante };
+  }
+  const ordem = ordemDe('compra', valor, representante);
+  const comprado = comOrdem(atual, 'compras', classe, ordem);
+  return { ...comprado, caixa: atual.caixa.subtrair(ordem.valor) };
 }
 
 function faltaDe(
@@ -81,16 +99,25 @@ function maiorFaltaPrimeiro(uma: Falta, outra: Falta): number {
 // Política: o aporte e o dinheiro das vendas da proposta vão às
 // classes abaixo do alvo, pela heurística de porAporte.
 export const investirOCaixa: PoliticaDeRebalanceamento = (
-  { composicao, alocacao, recursos },
+  { composicao, alocacao, recursos, representantes },
   proposta,
 ) => {
   const vendido = totalDe(proposta.vendas);
-  const depois = depoisDasVendas(composicao, proposta.vendas);
-  const { compras, caixa } = porAporte(
-    depois,
+  const compras = porAporte(
+    depoisDasVendas(composicao, proposta.vendas),
     alocacao,
     recursos.aporte.somar(vendido),
+    representantes,
   );
-  return { ...proposta, compras, caixa };
+  return {
+    ...proposta,
+    compras: compras.compras,
+    caixa: compras.caixa,
+    ordens: [...proposta.ordens, ...compras.ordens],
+    semRepresentante: [
+      ...proposta.semRepresentante,
+      ...compras.semRepresentante,
+    ],
+  };
 };
 // #endregion

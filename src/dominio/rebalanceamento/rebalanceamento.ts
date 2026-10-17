@@ -7,19 +7,18 @@ import {
   type Recursos,
   type Representantes,
 } from './politica.js';
-import { comprasInteiras, vendasInteiras } from './quantidades.js';
+import { vendasInteiras } from './quantidades.js';
 import { propostaVazia, type Sugestao } from './sugestao.js';
 import { acoesAcimaDaBanda, venderAcoesNaMargem } from './vendas.js';
 
 // #region politica-do-lastro
 // O rebalanceamento do Lastro, política a política: vender ações só
 // quando estão acima da banda, em ações inteiras; depois, investir o
-// aporte e o dinheiro das vendas, em unidades inteiras.
+// aporte e o dinheiro das vendas, também em unidades inteiras.
 export const politicaDoLastro = compor(
   quando(acoesAcimaDaBanda, venderAcoesNaMargem),
   vendasInteiras,
   investirOCaixa,
-  comprasInteiras,
 );
 
 export function rebalancear(

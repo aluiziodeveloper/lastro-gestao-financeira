@@ -97,7 +97,7 @@ describe('Quantidades inteiras', () => {
     expect(sugestao.semRepresentante).toEqual(['acao']);
   });
 
-  it('a compra de uma classe sem representante volta ao caixa', () => {
+  it('a classe sem representante passa o dinheiro à seguinte', () => {
     const comEtf = extrair(
       AlocacaoAlvo.criar([
         {
@@ -126,7 +126,8 @@ describe('Quantidades inteiras', () => {
     );
 
     expect(sugestao.semRepresentante).toEqual(['etf']);
-    expect(sugestao.caixa).toEqual(reais(10_000_00n));
+    expect(sugestao.compras.fii).toEqual(reais(8_800_00n));
+    expect(sugestao.caixa).toEqual(reais(1_200_00n));
   });
 });
 // #endregion
