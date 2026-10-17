@@ -66,12 +66,14 @@ jobs:
 
   # #region ci-mutacao
   # Só depois de tipos, lint e testes verdes: a mutação roda a suíte
-  # inteira contra cada mutante, e o Stryker falha abaixo de 85%.
+  # inteira contra cada mutante, e o Stryker falha abaixo de 85%. Na
+  # v1.0.0, o job passou de 20 minutos e foi cancelado; o limite tem
+  # folga para o domínio crescer.
   mutacao:
     name: Testes de mutação
     needs: verificar
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@v7
 
