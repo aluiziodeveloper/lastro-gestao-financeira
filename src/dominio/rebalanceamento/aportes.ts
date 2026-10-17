@@ -12,7 +12,7 @@ import { nenhumValor, type Sugestao } from './sugestao.js';
 // #region por-aporte
 // O valor-alvo de uma classe trunca o centavo: a compra nunca passa do
 // alvo, e o centavo que sobra fica em caixa.
-const arredondamentoDoAlvo: ModoDeArredondamento = 'truncar';
+export const arredondamentoDoAlvo: ModoDeArredondamento = 'truncar';
 
 interface Falta {
   readonly classe: ClasseDeAtivo;
