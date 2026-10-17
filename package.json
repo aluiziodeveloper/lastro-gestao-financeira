@@ -1,17 +1,52 @@
 {
-  "name": "lastro",
+  "name": "@aluiziodeveloper/lastro",
   "version": "0.0.0",
-  "private": true,
   "description": "Motor de cálculo e gestão de carteiras de investimento para pessoa física, projeto-guia do livro Domínio à Prova de Bugs",
+  "license": "MIT",
+  "author": "Jorge Aluizio Alves de Souza",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aluiziodeveloper/lastro-gestao-financeira.git"
+  },
   "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./adaptadores": {
+      "types": "./dist/adaptadores/index.d.ts",
+      "default": "./dist/adaptadores/index.js"
+    }
+  },
+  "types": "./dist/index.d.ts",
   "bin": {
     "lastro": "dist/adaptadores/cli/main.js"
   },
+  "files": [
+    "dist"
+  ],
   "engines": {
     "node": ">=24"
   },
-  "author": "Jorge Aluizio Alves de Souza",
-  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.build.json",
+    "test": "vitest run",
+    "test:cobertura": "vitest run --coverage",
+    "lint": "eslint . && prettier --check .",
+    "formatar": "prettier --write .",
+    "verificar": "npm run typecheck && npm run lint && npm test",
+    "mutacao": "stryker run",
+    "prepack": "npm run build"
+  },
+  "dependencies": {
+    "fastify": "5.12.5",
+    "pg": "8.23.1"
+  },
   "devDependencies": {
     "@eslint/js": "10.0.1",
     "@stryker-mutator/core": "10.0.0",
@@ -27,19 +62,5 @@
     "typescript": "6.0.3",
     "typescript-eslint": "8.71.1",
     "vitest": "5.0.3"
-  },
-  "scripts": {
-    "typecheck": "tsc --noEmit",
-    "build": "tsc -p tsconfig.build.json",
-    "test": "vitest run",
-    "test:cobertura": "vitest run --coverage",
-    "lint": "eslint . && prettier --check .",
-    "formatar": "prettier --write .",
-    "verificar": "npm run typecheck && npm run lint && npm test",
-    "mutacao": "stryker run"
-  },
-  "dependencies": {
-    "fastify": "5.12.5",
-    "pg": "8.23.1"
   }
 }

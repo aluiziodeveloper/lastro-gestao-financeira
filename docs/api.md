@@ -1,10 +1,23 @@
-# API HTTP do Lastro
+# Referência do Lastro
+
+Este documento descreve o contrato público do Lastro: o que o pacote exporta e a API HTTP. A CLI está no `README.md`.
+
+## Pacote
+
+| Ponto de entrada                       | Exporta                                                                                                                      |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `@aluiziodeveloper/lastro`             | Objetos de valor (`Dinheiro`, `Quantidade`, `Ticker`), operações, `Carteira`, dados de referência da apuração e casos de uso |
+| `@aluiziodeveloper/lastro/adaptadores` | Repositórios em memória, SQLite e Postgres, o importador de CSV, a aplicação HTTP (`criarApp`) e o relógio do sistema        |
+
+A lista exata, nome a nome, está em `test/pacote/exportacoes.test.ts`.
+
+## API HTTP
 
 A API recebe as operações de uma carteira e responde o relatório do mês e a posição. Dinheiro vai e volta em centavos, como texto de dígitos, porque o JSON não tem inteiro de 64 bits; na saída, vai também em reais, para leitura.
 
 <!-- #region rotas -->
 
-## Rotas
+### Rotas
 
 | Método | Rota                             | Faz                                       |
 | ------ | -------------------------------- | ----------------------------------------- |
@@ -14,7 +27,7 @@ A API recebe as operações de uma carteira e responde o relatório do mês e a 
 
 <!-- #endregion -->
 
-## Registrar operações
+### Registrar operações
 
 ```http
 POST /carteiras/minha/operacoes
@@ -37,7 +50,7 @@ Content-Type: application/json
 
 Todos os campos são obrigatórios. A data é do pregão, em `AAAA-MM-DD`; o tipo é `compra` ou `venda`; o identificador não pode se repetir na carteira. A resposta é `201`, com `{"registradas": 1}`.
 
-## Relatório do mês
+### Relatório do mês
 
 `GET /carteiras/minha/relatorios/2026-04` responde `200` com as linhas do relatório:
 
@@ -53,7 +66,7 @@ Todos os campos são obrigatórios. A data é do pregão, em `AAAA-MM-DD`; o tip
 
 O trecho omite linhas do meio. A apuração começa no primeiro mês com operação e segue até o mês pedido, porque o prejuízo e o imposto pendente vêm dos meses anteriores.
 
-## Posição
+### Posição
 
 `GET /carteiras/minha` responde `200`:
 
@@ -71,7 +84,7 @@ O trecho omite linhas do meio. A apuração começa no primeiro mês com operaç
 
 <!-- #region erros -->
 
-## Erros
+### Erros
 
 O corpo de um erro do Lastro traz só o tipo, como `{"tipo": "venda-a-descoberto"}`.
 

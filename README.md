@@ -44,6 +44,28 @@ A partir do Capítulo 2, cada capítulo tem um desafio. A branch `desafio/capXX`
 
 O Lastro tem duas entradas para quem o usa: a linha de comando, que importa o extrato da corretora e escreve o relatório do mês, e a API HTTP, descrita em [`docs/api.md`](docs/api.md). As duas guardam as operações num banco SQLite ou Postgres e chamam as mesmas regras.
 
+<!-- #region instalacao -->
+
+### Instalação
+
+Cada versão do Lastro sai na página de _releases_ do GitHub, com o pacote do npm anexado. Para instalar a versão 1.0.0 e ganhar o comando `lastro`:
+
+```sh
+npm install --global https://github.com/aluiziodeveloper/lastro-gestao-financeira/releases/download/v1.0.0/aluiziodeveloper-lastro-1.0.0.tgz
+lastro relatorio 2026-04 --carteira minha --banco lastro.db
+```
+
+Num projeto em TypeScript ou JavaScript, o domínio e os casos de uso vêm do ponto de entrada principal, e os adaptadores, de `/adaptadores`:
+
+```ts
+import { Dinheiro, registrarOperacoes } from '@aluiziodeveloper/lastro';
+import { repositorioSqlite } from '@aluiziodeveloper/lastro/adaptadores';
+```
+
+O que o pacote exporta é o contrato público do Lastro, listado em [`docs/api.md`](docs/api.md). Mudar esse contrato de forma incompatível só acontece numa versão maior.
+
+<!-- #endregion -->
+
 <!-- #region uso-cli -->
 
 ### Linha de comando
