@@ -87,9 +87,12 @@ describe('Desafio · proventos extraordinários', () => {
   });
 
   it('um provento sem outros do mesmo ativo fica', () => {
-    const sozinho = [dividendoDeAbril(2_00n)];
+    const proventos = [
+      dividendoDeAbril(2_00n),
+      jcpDeItub4('2026-03-02', 10_00n),
+    ];
 
-    expect(semExtraordinarios(sozinho)).toBe('R$ 800,00');
+    expect(semExtraordinarios(proventos)).toBe('R$ 810,00');
   });
 
   it.each([
@@ -107,5 +110,41 @@ describe('Desafio · proventos extraordinários', () => {
       expect(semExtraordinarios(proventos)).toBe(esperado);
     },
   );
+
+  // Os três outros valem R$ 0,01, R$ 0,03 e R$ 0,05 por ação, em
+  // várias ordens de pagamento; R$ 0,062 só passa do dobro da mediana
+  // certa, R$ 0,03.
+  it.each([
+    ['1, 3, 5', 5_00n, 15_00n, 25_00n],
+    ['5, 1, 3', 25_00n, 5_00n, 15_00n],
+    ['3, 5, 1', 15_00n, 25_00n, 5_00n],
+    ['5, 3, 1', 25_00n, 15_00n, 5_00n],
+  ])(
+    'três outros, na ordem %s centavos: a mediana é o do meio',
+    (_, primeiro, segundo, terceiro) => {
+      const proventos = [
+        jcpDeItub4('2026-01-02', primeiro),
+        jcpDeItub4('2026-02-02', segundo),
+        jcpDeItub4('2026-03-02', terceiro),
+        jcpDeItub4('2026-04-01', 31_00n),
+      ];
+
+      expect(semExtraordinarios(proventos)).toBe('R$ 45,00');
+    },
+  );
+
+  it('os proventos fora da janela não entram na mediana', () => {
+    const antigos = ['01', '02', '03', '04', '05'].map((mes) => ({
+      ...dividendoDeAbril(2_00n),
+      pagamento: data(`2025-${mes}-20`),
+    }));
+    const proventos = [
+      ...proventosDaTabela,
+      ...antigos,
+      dividendoDeAbril(1_51n),
+    ];
+
+    expect(semExtraordinarios(proventos)).toBe('R$ 3.300,00');
+  });
 });
 // #endregion
