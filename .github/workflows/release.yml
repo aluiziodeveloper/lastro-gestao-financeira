@@ -1,0 +1,70 @@
+name: Release
+
+# #region release
+# A release de uma versão: disparada pelo envio de uma tag v*, como
+# v1.0.0. Verifica tudo de novo, gera as notas a partir dos commits,
+# empacota e cria a release no GitHub com o pacote anexado.
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    name: Release da versão
+    runs-on: ubuntu-latest
+    # Só este job escreve no repositório (a release) e nos registros.
+    permissions:
+      contents: write
+      id-token: write
+      packages: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # O git-cliff precisa do histórico inteiro, e não do último
+          # commit.
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          registry-url: https://registry.npmjs.org
+
+      - name: Instalação e verificação
+        run: |
+          npm ci
+          npm run verificar
+
+      - name: Notas da versão
+        run: npx git-cliff --latest --strip header -o notas.md
+
+      - name: Pacote
+        run: npm pack
+
+      - name: Release no GitHub
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release create "$GITHUB_REF_NAME" ./*.tgz
+          --title "$GITHUB_REF_NAME" --notes-file notas.md
+
+      # A publicação nos registros só roda quando o autor liga a
+      # variável PUBLICAR no repositório e cadastra o segredo NPM_TOKEN.
+      - name: Publicação no npm
+        if: vars.PUBLICAR == 'true'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --provenance
+
+      - name: Publicação da imagem
+        if: vars.PUBLICAR == 'true'
+        env:
+          IMAGEM: ghcr.io/aluiziodeveloper/lastro:${{ github.ref_name }}
+        run: |
+          echo "${{ github.token }}" | docker login ghcr.io \
+            -u "${{ github.actor }}" --password-stdin
+          docker build -t "$IMAGEM" .
+          docker push "$IMAGEM"
+
+# #endregion

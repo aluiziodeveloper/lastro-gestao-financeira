@@ -41,7 +41,8 @@
     "formatar": "prettier --write .",
     "verificar": "npm run typecheck && npm run lint && npm test",
     "mutacao": "stryker run",
-    "prepack": "npm run build"
+    "prepack": "npm run build",
+    "changelog": "git-cliff -o CHANGELOG.md"
   },
   "dependencies": {
     "fastify": "5.12.5",
@@ -58,6 +59,7 @@
     "eslint": "10.12.0",
     "eslint-config-prettier": "10.1.8",
     "fast-check": "4.10.2",
+    "git-cliff": "2.14.2",
     "prettier": "3.9.9",
     "typescript": "6.0.3",
     "typescript-eslint": "8.71.1",
