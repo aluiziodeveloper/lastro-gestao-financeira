@@ -5,8 +5,15 @@ import type { Marcado } from '../marca.js';
 // são 8,25%. O inteiro deixa a vírgula para a hora de mostrar.
 export type PontosBase = Marcado<bigint, 'PontosBase'>;
 
+// Qualquer inteiro é uma quantidade de pontos-base; quem precisa de
+// limites, como a alocação-alvo, os confere. Só este módulo aplica a
+// marca.
+export function pontosBase(valor: bigint): PontosBase {
+  return valor as PontosBase;
+}
+
 // Cem por cento, em pontos-base.
-export const cemPorCento = 10_000n as PontosBase;
+export const cemPorCento = pontosBase(10_000n);
 // #endregion
 
 // #region pontos-base-em-percentual
