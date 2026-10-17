@@ -3,11 +3,19 @@ import { describe, expect, it } from 'vitest';
 import type { Composicao } from '../../src/dominio/alocacao/composicao.js';
 import { Dinheiro } from '../../src/dominio/dinheiro.js';
 import { pontosBase } from '../../src/dominio/mercado/pontos-base.js';
-import { rebalancearComCusto } from '../../src/dominio/rebalanceamento/custo-operacional.js';
+import {
+  rebalancearComCusto,
+  semOrdensCaras,
+} from '../../src/dominio/rebalanceamento/custo-operacional.js';
 import { rebalancear } from '../../src/dominio/rebalanceamento/rebalanceamento.js';
+import {
+  nenhumValor,
+  propostaVazia,
+} from '../../src/dominio/rebalanceamento/sugestao.js';
 import {
   alocacaoDaCena,
   representantesDaCena,
+  ticker,
 } from './carteira-desenquadrada.js';
 
 const reais = (centavos: bigint): Dinheiro =>
@@ -95,5 +103,42 @@ describe('Desafio · custo operacional', () => {
     );
 
     expect(sugestao.vendas.acao).toEqual(reais(17_000_00n));
+    // A compra de 106 HGLG11, R$ 16.960,00, custaria mais que 0,10%.
+    expect(sugestao.ordens).toEqual([
+      {
+        tipo: 'venda',
+        ticker: ticker('ITUB4'),
+        quantidade: 425n,
+        valor: reais(17_000_00n),
+      },
+    ]);
+  });
+
+  it('sozinha, a política tira a venda cara sem mexer no caixa', () => {
+    const vendaCara = {
+      ...propostaVazia,
+      vendas: { ...nenhumValor, acao: reais(40_00n) },
+      ordens: [
+        {
+          tipo: 'venda' as const,
+          ticker: ticker('ITUB4'),
+          quantidade: 1n,
+          valor: reais(40_00n),
+        },
+      ],
+    };
+    const situacao = {
+      composicao: daCena,
+      alocacao: alocacaoDaCena,
+      recursos: { aporte: reais(0n), margem: reais(0n) },
+      representantes: representantesDaCena,
+    };
+
+    const proposta = semOrdensCaras(dezReaisAteUmDecimo)(
+      situacao,
+      vendaCara,
+    );
+
+    expect(proposta).toEqual(propostaVazia);
   });
 });
