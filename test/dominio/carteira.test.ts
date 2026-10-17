@@ -379,3 +379,61 @@ describe('Carteira', () => {
     );
   });
 });
+
+// #region carteira-ativos-teste
+describe('Carteira: os ativos em carteira', () => {
+  it('vazia, não tem ativos', () => {
+    expect(carteiraVazia().ativos()).toEqual([]);
+  });
+
+  it('lista os ativos na ordem em que entraram, sem repetir', () => {
+    const carteira = [
+      umaCompra({
+        ticker: 'VALE3',
+        quantidade: 300,
+        precoEmCentavos: 61_40n,
+      }),
+      umaCompra({
+        ticker: 'PETR4',
+        quantidade: 100,
+        precoEmCentavos: 36_00n,
+      }),
+      umaCompra({
+        ticker: 'VALE3',
+        quantidade: 100,
+        precoEmCentavos: 62_00n,
+      }),
+    ].reduce(
+      (atual, compra) => extrair(atual.registrar(compra)),
+      carteiraVazia(),
+    );
+
+    expect(carteira.ativos()).toEqual([vale3, petr4]);
+  });
+
+  it('tira o ativo vendido por inteiro', () => {
+    const carteira = [
+      umaCompra({
+        ticker: 'VALE3',
+        quantidade: 300,
+        precoEmCentavos: 61_40n,
+      }),
+      umaCompra({
+        ticker: 'PETR4',
+        quantidade: 100,
+        precoEmCentavos: 36_00n,
+      }),
+      umaVenda({
+        ticker: 'VALE3',
+        quantidade: 300,
+        precoEmCentavos: 63_00n,
+      }),
+    ].reduce(
+      (atual, operacao) => extrair(atual.registrar(operacao)),
+      carteiraVazia(),
+    );
+
+    expect(carteira.ativos()).toEqual([petr4]);
+  });
+});
+// #endregion

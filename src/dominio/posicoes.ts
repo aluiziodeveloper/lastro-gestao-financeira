@@ -8,16 +8,23 @@ import type { ErroDeQuantidade } from './quantidade.js';
 import { ok, type Result } from './resultado.js';
 import type { Ticker } from './ticker.js';
 
+// O mapa guarda o ticker ao lado da posição: a chave é só o texto, e
+// quem pergunta pelos ativos recebe o Ticker.
+interface PosicaoDoAtivo {
+  readonly ticker: Ticker;
+  readonly posicao: Posicao;
+}
+
 // #region posicoes-classe
 // Coleção de primeira classe: o Map fica aqui dentro, e quem usa a
 // coleção diz o que quer com cada ativo, sem ver as posições. Cada
 // mudança devolve uma coleção nova.
 export class Posicoes {
-  readonly #porAtivo: ReadonlyMap<string, Posicao>;
+  readonly #porAtivo: ReadonlyMap<string, PosicaoDoAtivo>;
   readonly #fracoes: ReadonlyMap<string, readonly FracaoDeAcao[]>;
 
   private constructor(
-    porAtivo: ReadonlyMap<string, Posicao>,
+    porAtivo: ReadonlyMap<string, PosicaoDoAtivo>,
     fracoes: ReadonlyMap<string, readonly FracaoDeAcao[]>,
   ) {
     this.#porAtivo = porAtivo;
@@ -74,14 +81,25 @@ export class Posicoes {
     return this.#posicaoDe(ticker).precoMedio(modo);
   }
 
+  // #region posicoes-ativos
+  // Os ativos com posição, na ordem em que entraram na carteira: o Map
+  // guarda a ordem de inclusão. Um ativo vendido por inteiro sai.
+  ativos(): readonly Ticker[] {
+    return [...this.#porAtivo.values()]
+      .filter(({ posicao }) => posicao.quantidade() > 0n)
+      .map(({ ticker }) => ticker);
+  }
+  // #endregion
+
   // Um ativo sem registro tem a posição zerada.
   #posicaoDe(ticker: Ticker): Posicao {
-    return this.#porAtivo.get(ticker.paraTexto()) ?? Posicao.zerada();
+    const doAtivo = this.#porAtivo.get(ticker.paraTexto());
+    return doAtivo?.posicao ?? Posicao.zerada();
   }
 
   #com(ticker: Ticker, posicao: Posicao): Posicoes {
     const porAtivo = new Map(this.#porAtivo);
-    porAtivo.set(ticker.paraTexto(), posicao);
+    porAtivo.set(ticker.paraTexto(), { ticker, posicao });
     return new Posicoes(porAtivo, this.#fracoes);
   }
 

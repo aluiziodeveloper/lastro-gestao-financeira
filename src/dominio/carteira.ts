@@ -111,17 +111,18 @@ export class Carteira {
     return this.#posicoes.quantidadeDe(ticker);
   }
 
+  ativos(): readonly Ticker[] {
+    return this.#posicoes.ativos();
+  }
+
   precoMedioDe(ticker: Ticker, modo: ModoDeArredondamento): Dinheiro {
     return this.#posicoes.precoMedioDe(ticker, modo);
   }
 
   // A operação registrada traz a nova última data.
   #com(operacao: Datado, posicoes: Posicoes): Carteira {
-    return new Carteira(
-      this.#id,
-      posicoes,
-      this.#ordem.depoisDe(operacao),
-    );
+    const ordem = this.#ordem.depoisDe(operacao);
+    return new Carteira(this.#id, posicoes, ordem);
   }
 }
 // #endregion
