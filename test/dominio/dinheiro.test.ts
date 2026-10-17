@@ -242,3 +242,11 @@ describe('Dinheiro: unidades e razão', () => {
     expect(meio).toBe(0n);
   });
 });
+
+describe('Dinheiro: em centavos', () => {
+  it('devolve o número de centavos para a borda', () => {
+    expect(Dinheiro.deCentavos(-1_234_56n).emCentavos()).toBe(
+      -1_234_56n,
+    );
+  });
+});

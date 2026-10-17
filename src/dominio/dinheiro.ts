@@ -64,6 +64,15 @@ export class Dinheiro implements ObjetoDeValor<Dinheiro> {
   }
   // #endregion
 
+  // #region dinheiro-em-centavos
+  // O número de centavos, para a borda que grava ou transmite o valor:
+  // o banco e o JSON precisam do número, e o domínio continua fazendo
+  // as contas com Dinheiro.
+  emCentavos(): bigint {
+    return this.#centavos;
+  }
+  // #endregion
+
   // #region dinheiro-unidades-e-razao
   // O valor de tantas unidades, que podem ser zero: o preço de uma
   // posição zerada vale zero.
