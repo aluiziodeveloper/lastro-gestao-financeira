@@ -1,5 +1,6 @@
 import type { DataDoCalendario } from '../data-do-calendario.js';
 import type { Dinheiro } from '../dinheiro.js';
+import { garantirExaustividade } from '../exaustividade.js';
 import type { Quantidade } from '../quantidade.js';
 import type { Ticker } from '../ticker.js';
 
@@ -49,5 +50,21 @@ export interface TratamentoDoProvento {
   readonly tratamento: 'isento' | 'exclusivo-na-fonte';
   readonly retido: Dinheiro;
   readonly liquido: Dinheiro;
+}
+// #endregion
+
+// #region unidades-do-provento
+// As ações ou cotas que receberam o provento: cada tipo as guarda com
+// o seu nome, e quem precisa só do número pergunta aqui.
+export function unidadesDe(provento: Provento): Quantidade {
+  switch (provento.tipo) {
+    case 'dividendo':
+    case 'jcp':
+      return provento.quantidade;
+    case 'rendimento-de-fii':
+      return provento.cotas;
+    default:
+      return garantirExaustividade(provento);
+  }
 }
 // #endregion

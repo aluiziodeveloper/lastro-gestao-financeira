@@ -1,5 +1,6 @@
 import {
   criarDataDoCalendario,
+  primeiroDiaDeslocado,
   primeiroDiaDoMesSeguinte,
   type DataDoCalendario,
 } from '../data-do-calendario.js';
@@ -81,6 +82,22 @@ export class MesDeApuracao implements ObjetoDeValor<MesDeApuracao> {
       primeiroDiaDoMesSeguinte(this.#primeiroDia),
     );
   }
+
+  // #region mes-deslocado
+  // O mês a tantos meses deste: deslocado(1) é o seguinte, e
+  // deslocado(-12), o mesmo mês do ano anterior.
+  deslocado(meses: number): MesDeApuracao {
+    return new MesDeApuracao(
+      primeiroDiaDeslocado(this.#primeiroDia, meses),
+    );
+  }
+
+  // A data cai no mesmo mês do ano que este, em qualquer ano: março
+  // de 2025 e março de 2027 são o mesmo mês do ano.
+  mesmoMesDoAno(data: DataDoCalendario): boolean {
+    return data.slice(5, 7) === this.#primeiroDia.slice(5, 7);
+  }
+  // #endregion
 
   // O último mês do ano, em que saldos anuais se encerram.
   ehDezembro(): boolean {

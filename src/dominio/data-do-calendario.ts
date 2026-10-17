@@ -44,6 +44,22 @@ export function primeiroDiaDoMesSeguinte(
 }
 // #endregion
 
+// #region primeiro-dia-deslocado
+// O dia 1 do mês a tantos meses do da data, para a frente ou para
+// trás. Como acima, o Date.UTC leva ao ano os meses que passam de 12
+// ou ficam abaixo de 1: o mês 13 é o janeiro seguinte, e o mês 0, o
+// dezembro anterior.
+export function primeiroDiaDeslocado(
+  data: DataDoCalendario,
+  meses: number,
+): DataDoCalendario {
+  const ano = Number(data.slice(0, 4));
+  const mes = Number(data.slice(5, 7));
+  const deslocado = new Date(Date.UTC(ano, mes - 1 + meses, 1));
+  return deslocado.toISOString().slice(0, 10) as DataDoCalendario;
+}
+// #endregion
+
 // #region data-em-sao-paulo
 // O dia do calendário em São Paulo num instante: o mês corrente do
 // investidor é o de lá, e não o de UTC. O fuso vai pelo nome, e não

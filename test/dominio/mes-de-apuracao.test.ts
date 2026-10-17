@@ -108,3 +108,31 @@ describe('MesDeApuracao: o mês seguinte, como valor', () => {
     expect(mes(texto).seguinte()).toEqual(mes(seguinte));
   });
 });
+
+// #region mes-deslocado-teste
+describe('MesDeApuracao: o mês deslocado', () => {
+  it.each([
+    ['2026-10', 1, '2026-11'],
+    ['2026-12', 1, '2027-01'],
+    ['2026-01', -1, '2025-12'],
+    ['2026-10', 0, '2026-10'],
+    ['2026-10', 12, '2027-10'],
+    ['2026-10', -13, '2025-09'],
+    ['2026-10', -24, '2024-10'],
+  ])('%s deslocado %i meses é %s', (texto, meses, esperado) => {
+    expect(mes(texto).deslocado(meses)).toEqual(mes(esperado));
+  });
+
+  it.each([
+    ['2025-03-15', true, 'no ano anterior'],
+    ['2027-03-01', true, 'no ano seguinte'],
+    ['2026-03-31', true, 'no mesmo ano'],
+    ['2026-04-01', false, 'no mês seguinte'],
+    ['2026-02-28', false, 'no mês anterior'],
+  ])('março tem o mês do ano de %s: %s (%s)', (texto, esperado) => {
+    const data = extrair(criarDataDoCalendario(texto));
+
+    expect(mes('2026-03').mesmoMesDoAno(data)).toBe(esperado);
+  });
+});
+// #endregion
