@@ -13,6 +13,7 @@ import { carteiraCom } from './carteira-de-renda.js';
 import {
   alocacaoDaCena,
   catalogoDaCena,
+  representantesDaCena,
 } from './carteira-desenquadrada.js';
 import { umaCompra, umaVenda } from './construtores.js';
 import { mes, referenciasCom, regrasEm } from './referencias.js';
@@ -58,10 +59,15 @@ describe('Margem de isenção', () => {
 // #region vendas-na-margem-teste
 describe('Rebalanceamento com vendas na margem', () => {
   it('a cena: vende R$ 17.000,00 de ações, e não R$ 26.000,00', () => {
-    const sugestao = rebalancear(daCena, alocacaoDaCena, {
-      aporte: reais(0n),
-      margem: reais(17_000_00n),
-    });
+    const sugestao = rebalancear(
+      daCena,
+      alocacaoDaCena,
+      {
+        aporte: reais(0n),
+        margem: reais(17_000_00n),
+      },
+      representantesDaCena,
+    );
 
     expect(sugestao.vendas).toEqual({
       ...nenhumValor,
@@ -69,36 +75,53 @@ describe('Rebalanceamento com vendas na margem', () => {
     });
     expect(sugestao.compras).toEqual({
       ...nenhumValor,
-      fii: reais(17_000_00n),
+      fii: reais(16_960_00n),
     });
+    expect(sugestao.caixa).toEqual(reais(40_00n));
   });
 
   it('com margem maior que o excesso, vende só o excesso', () => {
-    const sugestao = rebalancear(daCena, alocacaoDaCena, {
-      aporte: reais(0n),
-      margem: reais(30_000_00n),
-    });
+    const sugestao = rebalancear(
+      daCena,
+      alocacaoDaCena,
+      {
+        aporte: reais(0n),
+        margem: reais(30_000_00n),
+      },
+      representantesDaCena,
+    );
 
     expect(sugestao.vendas.acao).toEqual(reais(26_000_00n));
   });
 
   it('o aporte entra com a venda e diminui o excesso', () => {
-    const sugestao = rebalancear(daCena, alocacaoDaCena, {
-      aporte: reais(10_000_00n),
-      margem: reais(17_000_00n),
-    });
+    const sugestao = rebalancear(
+      daCena,
+      alocacaoDaCena,
+      {
+        aporte: reais(10_000_00n),
+        margem: reais(17_000_00n),
+      },
+      representantesDaCena,
+    );
 
     expect(sugestao.vendas.acao).toEqual(reais(17_000_00n));
-    expect(sugestao.compras.fii).toEqual(reais(27_000_00n));
+    expect(sugestao.compras.fii).toEqual(reais(26_880_00n));
+    expect(sugestao.caixa).toEqual(reais(120_00n));
   });
 
   it('dentro da banda, não vende', () => {
     const naBanda = composicao(54_000_00n, 46_000_00n);
 
-    const sugestao = rebalancear(naBanda, alocacaoDaCena, {
-      aporte: reais(0n),
-      margem: reais(17_000_00n),
-    });
+    const sugestao = rebalancear(
+      naBanda,
+      alocacaoDaCena,
+      {
+        aporte: reais(0n),
+        margem: reais(17_000_00n),
+      },
+      representantesDaCena,
+    );
 
     expect(sugestao.vendas).toEqual(nenhumValor);
   });
@@ -106,10 +129,15 @@ describe('Rebalanceamento com vendas na margem', () => {
   it('FII acima: não vende FII, e o aporte compra ações', () => {
     const muitoFii = composicao(40_000_00n, 60_000_00n);
 
-    const sugestao = rebalancear(muitoFii, alocacaoDaCena, {
-      aporte: reais(5_000_00n),
-      margem: reais(17_000_00n),
-    });
+    const sugestao = rebalancear(
+      muitoFii,
+      alocacaoDaCena,
+      {
+        aporte: reais(5_000_00n),
+        margem: reais(17_000_00n),
+      },
+      representantesDaCena,
+    );
 
     expect(sugestao.vendas).toEqual(nenhumValor);
     expect(sugestao.compras.acao).toEqual(reais(5_000_00n));

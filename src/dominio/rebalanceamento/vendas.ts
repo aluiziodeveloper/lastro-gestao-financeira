@@ -37,12 +37,15 @@ export const acoesAcimaDaBanda: Especificacao = ({
 
 // Política: vender o que passa do alvo nas ações, só até a margem.
 // Só as ações se vendem: toda venda de FII ou ETF com lucro paga
-// imposto.
+// imposto. Ações no alvo ou abaixo dele não têm o que vender.
 export const venderAcoesNaMargem: PoliticaDeRebalanceamento = (
   { composicao, alocacao, recursos },
   proposta,
 ) => {
   const excesso = excessoDeAcoes(composicao, alocacao, recursos.aporte);
+  if (!excesso.ehPositivo()) {
+    return proposta;
+  }
   const venda = excesso.excede(recursos.margem)
     ? recursos.margem
     : excesso;

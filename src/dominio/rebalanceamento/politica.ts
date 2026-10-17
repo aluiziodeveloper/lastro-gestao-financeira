@@ -1,6 +1,8 @@
 import type { AlocacaoAlvo } from '../alocacao/alocacao-alvo.js';
 import type { Composicao } from '../alocacao/composicao.js';
+import type { ClasseDeAtivo } from '../classe-de-ativo.js';
 import type { Dinheiro } from '../dinheiro.js';
+import type { Cotacao } from '../mercado/cotacoes.js';
 import type { Sugestao } from './sugestao.js';
 
 // #region politica-interface
@@ -11,10 +13,17 @@ export interface Recursos {
   readonly margem: Dinheiro;
 }
 
+// O ativo que a investidora usa para comprar e vender cada classe,
+// com a cotação dele.
+export type Representantes = Readonly<
+  Partial<Record<ClasseDeAtivo, Cotacao>>
+>;
+
 export interface Situacao {
   readonly composicao: Composicao;
   readonly alocacao: AlocacaoAlvo;
   readonly recursos: Recursos;
+  readonly representantes: Representantes;
 }
 
 // Uma política recebe a situação e a proposta até aqui e devolve a

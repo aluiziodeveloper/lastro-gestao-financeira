@@ -4,6 +4,7 @@ import {
   classesDeAtivo,
 } from '../classe-de-ativo.js';
 import { Dinheiro } from '../dinheiro.js';
+import type { Ticker } from '../ticker.js';
 
 // #region sugestao
 // O que comprar e vender em cada classe, e o dinheiro que sobra. É uma
@@ -12,10 +13,20 @@ export type ValoresPorClasse = Readonly<
   Record<ClasseDeAtivo, Dinheiro>
 >;
 
+// Uma ordem compra ou vende unidades inteiras de um ativo.
+export interface Ordem {
+  readonly tipo: 'compra' | 'venda';
+  readonly ticker: Ticker;
+  readonly quantidade: bigint;
+  readonly valor: Dinheiro;
+}
+
 export interface Sugestao {
   readonly compras: ValoresPorClasse;
   readonly vendas: ValoresPorClasse;
   readonly caixa: Dinheiro;
+  readonly ordens: readonly Ordem[];
+  readonly semRepresentante: readonly ClasseDeAtivo[];
 }
 
 export const zero = Dinheiro.deCentavos(0n);
@@ -31,6 +42,8 @@ export const propostaVazia: Sugestao = {
   compras: nenhumValor,
   vendas: nenhumValor,
   caixa: zero,
+  ordens: [],
+  semRepresentante: [],
 };
 
 // O total das vendas de todas as classes.

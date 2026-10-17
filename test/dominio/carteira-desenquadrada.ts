@@ -3,6 +3,7 @@ import { CatalogoDeAtivos } from '../../src/dominio/ativo.js';
 import { Dinheiro } from '../../src/dominio/dinheiro.js';
 import type { Cotacoes } from '../../src/dominio/mercado/cotacoes.js';
 import { pontosBase } from '../../src/dominio/mercado/pontos-base.js';
+import type { Representantes } from '../../src/dominio/rebalanceamento/politica.js';
 import { Ticker } from '../../src/dominio/ticker.js';
 import { extrair } from '../apoio/resultado.js';
 import { carteiraCom } from './carteira-de-renda.js';
@@ -67,4 +68,12 @@ export const alocacaoDaCena = extrair(
     },
   ]),
 );
+// A investidora compra e vende ações por ITUB4 e FII por HGLG11.
+export const representantesDaCena: Representantes = {
+  acao: { ticker: ticker('ITUB4'), preco: Dinheiro.deCentavos(40_00n) },
+  fii: {
+    ticker: ticker('HGLG11'),
+    preco: Dinheiro.deCentavos(160_00n),
+  },
+};
 // #endregion

@@ -5,7 +5,10 @@ import type { Composicao } from '../../src/dominio/alocacao/composicao.js';
 import { Dinheiro } from '../../src/dominio/dinheiro.js';
 import { pontosBase } from '../../src/dominio/mercado/pontos-base.js';
 import { porAporte } from '../../src/dominio/rebalanceamento/aportes.js';
-import { nenhumValor } from '../../src/dominio/rebalanceamento/sugestao.js';
+import {
+  nenhumValor,
+  propostaVazia,
+} from '../../src/dominio/rebalanceamento/sugestao.js';
 import { extrair } from '../apoio/resultado.js';
 import { alocacaoDaCena } from './carteira-desenquadrada.js';
 
@@ -28,9 +31,8 @@ describe('Rebalanceamento por aporte', () => {
     expect(
       porAporte(daCena, alocacaoDaCena, reais(10_000_00n)),
     ).toEqual({
+      ...propostaVazia,
       compras: { ...nenhumValor, fii: reais(10_000_00n) },
-      vendas: nenhumValor,
-      caixa: reais(0n),
     });
   });
 
@@ -91,11 +93,9 @@ describe('Rebalanceamento por aporte', () => {
   });
 
   it('sem aporte, não compra nada', () => {
-    expect(porAporte(daCena, alocacaoDaCena, reais(0n))).toEqual({
-      compras: nenhumValor,
-      vendas: nenhumValor,
-      caixa: reais(0n),
-    });
+    expect(porAporte(daCena, alocacaoDaCena, reais(0n))).toEqual(
+      propostaVazia,
+    );
   });
 });
 // #endregion

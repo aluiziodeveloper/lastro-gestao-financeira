@@ -11,6 +11,7 @@ import type { PoliticaDeRebalanceamento } from './politica.js';
 import {
   depoisDasVendas,
   nenhumValor,
+  propostaVazia,
   type Sugestao,
   totalDe,
 } from './sugestao.js';
@@ -50,7 +51,7 @@ export function porAporte(
     },
     { compras: nenhumValor, restante: aporte },
   );
-  return { compras, vendas: nenhumValor, caixa: restante };
+  return { ...propostaVazia, compras, caixa: restante };
 }
 
 function faltaDe(
