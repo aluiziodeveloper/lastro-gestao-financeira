@@ -37,6 +37,14 @@ export class MesDeApuracao implements ObjetoDeValor<MesDeApuracao> {
     return ok(new MesDeApuracao(primeiroDia.valor));
   }
 
+  // #region mes-do-dia
+  // O mês de uma data que já existe: não há o que validar, e o
+  // deslocamento de zero meses dá o dia 1 dele.
+  static doDia(data: DataDoCalendario): MesDeApuracao {
+    return new MesDeApuracao(primeiroDiaDeslocado(data, 0));
+  }
+  // #endregion
+
   primeiroDia(): DataDoCalendario {
     return this.#primeiroDia;
   }

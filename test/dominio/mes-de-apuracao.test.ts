@@ -136,3 +136,15 @@ describe('MesDeApuracao: o mês deslocado', () => {
   });
 });
 // #endregion
+
+describe('MesDeApuracao: o mês de um dia', () => {
+  it.each([
+    ['2026-10-31', '2026-10'],
+    ['2026-11-01', '2026-11'],
+    ['2026-12-31', '2026-12'],
+  ])('%s cai em %s', (texto, esperado) => {
+    const dia = extrair(criarDataDoCalendario(texto));
+
+    expect(MesDeApuracao.doDia(dia)).toEqual(mes(esperado));
+  });
+});
