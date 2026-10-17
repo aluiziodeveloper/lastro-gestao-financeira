@@ -55,6 +55,13 @@ export default defineConfig(
           modifiers: ['requiresQuotes'],
           format: null,
         },
+        // Os nomes que o Fastify impõe aos tipos de uma rota: a
+        // convenção do Lastro cede na fronteira com o framework.
+        {
+          selector: 'typeProperty',
+          filter: { regex: '^(Params|Body)$', match: true },
+          format: null,
+        },
       ],
     },
   },
