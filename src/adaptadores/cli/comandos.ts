@@ -54,3 +54,16 @@ export async function relatorio(
   );
   return linhas.ok ? linhas : err(`Recusado: ${linhas.erro.tipo}.`);
 }
+
+// #region exportar
+// Desafio do Capítulo 15: a posição em CSV, no formato do extrato:
+// o cabeçalho Ativo;Quantidade;Custo total e uma linha por ativo, com
+// o custo em reais sem o símbolo. Os testes estão em
+// test/adaptadores/cli/exportar.test.ts.
+export function exportar(
+  repositorio: RepositorioDeCarteiras,
+  id: IdDeCarteira,
+): Promise<Linhas> {
+  throw new Error(`Desafio do Capítulo 15: exporte ${id}.`);
+}
+// #endregion
