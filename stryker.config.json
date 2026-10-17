@@ -1,5 +1,5 @@
 {
-  "mutate": ["src/**/*.ts"],
+  "mutate": ["src/dominio/**/*.ts", "src/aplicacao/**/*.ts"],
   "testRunner": "command",
   "commandRunner": {
     "command": "npx vitest run --bail 1"

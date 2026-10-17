@@ -8,6 +8,22 @@ import tseslint from 'typescript-eslint';
 const dateSemArgumentos =
   "NewExpression[callee.name='Date'][arguments.length=0]";
 
+// Os padrões de import que o núcleo recusa, com a razão na mensagem.
+function paraDentro(pasta) {
+  return {
+    group: [pasta],
+    message: 'A dependência aponta para dentro, nunca para fora.',
+  };
+}
+
+const mundoDeFora = [
+  paraDentro('**/adaptadores/**'),
+  {
+    group: ['node:*', 'fastify', 'fastify/*', 'pg'],
+    message: 'Banco, HTTP e Node ficam nos adaptadores.',
+  },
+];
+
 export default defineConfig(
   { ignores: ['coverage/', 'dist/', 'reports/'] },
   eslint.configs.recommended,
@@ -69,8 +85,10 @@ export default defineConfig(
   // #region calisthenics-tamanho
   // Regra 7 de Calisthenics: entidades pequenas. Os limites são os do
   // Lastro, e não os de Bay; linhas em branco e comentários não contam.
+  // Valem no domínio, onde mora a regra; na borda, a forma é a que o
+  // framework e o banco pedem.
   {
-    files: ['src/**/*.ts'],
+    files: ['src/dominio/**/*.ts'],
     rules: {
       'max-lines': [
         'error',
@@ -85,10 +103,10 @@ export default defineConfig(
   // #endregion
   // #region calisthenics-forma
   // Regras 1 e 2 de Calisthenics: um nível de indentação por função e
-  // nada de else depois de return. Valem só para src/, como as de
+  // nada de else depois de return. Valem só para o domínio, como as de
   // tamanho.
   {
-    files: ['src/**/*.ts'],
+    files: ['src/dominio/**/*.ts'],
     rules: {
       'max-depth': ['error', 1],
       'no-else-return': ['error', { allowElseIf: false }],
@@ -118,6 +136,27 @@ export default defineConfig(
           message: 'Receba um Relogio em vez de ler o relógio.',
         },
       ],
+    },
+  },
+  // #endregion
+  // #region fronteiras
+  // A dependência aponta para dentro: o domínio não importa a aplicação
+  // nem a borda, e a aplicação não importa a borda. Nenhum dos dois
+  // fala com o mundo de fora: banco, HTTP e módulos do Node ficam nos
+  // adaptadores.
+  {
+    files: ['src/dominio/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        { patterns: [paraDentro('**/aplicacao/**'), ...mundoDeFora] },
+      ],
+    },
+  },
+  {
+    files: ['src/aplicacao/**/*.ts'],
+    rules: {
+      'no-restricted-imports': ['error', { patterns: mundoDeFora }],
     },
   },
   // #endregion
