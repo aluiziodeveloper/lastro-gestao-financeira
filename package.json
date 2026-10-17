@@ -4,6 +4,9 @@
   "private": true,
   "description": "Motor de cálculo e gestão de carteiras de investimento para pessoa física, projeto-guia do livro Domínio à Prova de Bugs",
   "type": "module",
+  "bin": {
+    "lastro": "dist/adaptadores/cli/main.js"
+  },
   "engines": {
     "node": ">=24"
   },
@@ -27,6 +30,7 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.build.json",
     "test": "vitest run",
     "test:cobertura": "vitest run --coverage",
     "lint": "eslint . && prettier --check .",
