@@ -4,6 +4,10 @@ import prettier from 'eslint-config-prettier';
 import { defineConfig } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 
+// new Date() sem argumentos: a leitura do relógio do sistema.
+const dateSemArgumentos =
+  "NewExpression[callee.name='Date'][arguments.length=0]";
+
 export default defineConfig(
   { ignores: ['coverage/', 'dist/', 'reports/'] },
   eslint.configs.recommended,
@@ -81,6 +85,32 @@ export default defineConfig(
     rules: {
       'max-depth': ['error', 1],
       'no-else-return': ['error', { allowElseIf: false }],
+    },
+  },
+  // #endregion
+  // #region proibe-relogio
+  // Só o adaptador lê o relógio do sistema. No resto de src/, quem
+  // precisa de agora recebe um Relogio, e a data do fato chega como
+  // parâmetro. new Date(texto) continua livre: converte, não lê a hora.
+  {
+    files: ['src/**/*.ts'],
+    ignores: ['src/adaptadores/**'],
+    rules: {
+      'no-restricted-properties': [
+        'error',
+        {
+          object: 'Date',
+          property: 'now',
+          message: 'Receba um Relogio em vez de ler o relógio.',
+        },
+      ],
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: dateSemArgumentos,
+          message: 'Receba um Relogio em vez de ler o relógio.',
+        },
+      ],
     },
   },
   // #endregion
