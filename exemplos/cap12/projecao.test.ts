@@ -1,10 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import { projecaoAPartirDeHoje } from '../../src/aplicacao/projecao-a-partir-de-hoje.js';
-import {
-  dividendYield,
-  emPercentual,
-} from '../../src/dominio/projecao/dividend-yield.js';
+import { emPercentual } from '../../src/dominio/mercado/pontos-base.js';
+import { dividendYield } from '../../src/dominio/projecao/dividend-yield.js';
 import { Ticker } from '../../src/dominio/ticker.js';
 import { relogioFixo } from '../../test/apoio/relogio-fixo.js';
 import { extrair } from '../../test/apoio/resultado.js';

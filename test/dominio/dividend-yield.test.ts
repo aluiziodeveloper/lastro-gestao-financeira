@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest';
 
 import { Dinheiro } from '../../src/dominio/dinheiro.js';
 import {
-  dividendYield,
   emPercentual,
   type PontosBase,
-} from '../../src/dominio/projecao/dividend-yield.js';
+} from '../../src/dominio/mercado/pontos-base.js';
+import { dividendYield } from '../../src/dominio/projecao/dividend-yield.js';
 import { projetarRenda } from '../../src/dominio/projecao/renda-projetada.js';
 import type { Provento } from '../../src/dominio/proventos/provento.js';
 import { Quantidade } from '../../src/dominio/quantidade.js';
@@ -108,17 +108,5 @@ describe('Dividend yield · arredondamento', () => {
     expect(
       dividendYield(rendaDeUmCentavo, umaCota, cotacoes, [hglg11]),
     ).toEqual(ok(pontos(1n)));
-  });
-});
-
-describe('Pontos-base em percentual', () => {
-  it.each([
-    [825n, '8,25%'],
-    [60n, '0,60%'],
-    [5n, '0,05%'],
-    [0n, '0,00%'],
-    [10_000n, '100,00%'],
-  ])('%i pontos-base são %s', (valor, esperado) => {
-    expect(emPercentual(pontos(valor))).toBe(esperado);
   });
 });

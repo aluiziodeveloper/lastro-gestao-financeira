@@ -6,7 +6,7 @@ import {
 import { Dinheiro } from '../../src/dominio/dinheiro.js';
 import { criarIdDeCarteira } from '../../src/dominio/id-de-carteira.js';
 import type { Operacao } from '../../src/dominio/operacao.js';
-import type { Cotacoes } from '../../src/dominio/projecao/dividend-yield.js';
+import type { Cotacoes } from '../../src/dominio/mercado/cotacoes.js';
 import type { Provento } from '../../src/dominio/proventos/provento.js';
 import { Quantidade } from '../../src/dominio/quantidade.js';
 import { Ticker } from '../../src/dominio/ticker.js';
