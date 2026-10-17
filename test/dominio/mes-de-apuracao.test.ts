@@ -148,3 +148,17 @@ describe('MesDeApuracao: o mês de um dia', () => {
     expect(MesDeApuracao.doDia(dia)).toEqual(mes(esperado));
   });
 });
+
+describe('MesDeApuracao: os meses até outro', () => {
+  it.each([
+    [
+      '2026-11',
+      '2027-02',
+      ['2026-11', '2026-12', '2027-01', '2027-02'],
+    ],
+    ['2026-11', '2026-11', ['2026-11']],
+    ['2026-11', '2026-10', []],
+  ])('de %s a %s', (inicio, fim, esperado) => {
+    expect(mes(inicio).mesesAte(mes(fim))).toEqual(esperado.map(mes));
+  });
+});

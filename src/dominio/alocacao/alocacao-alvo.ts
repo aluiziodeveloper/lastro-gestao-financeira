@@ -69,10 +69,6 @@ export class AlocacaoAlvo implements ObjetoDeValor<AlocacaoAlvo> {
     return ok(new AlocacaoAlvo(fatias));
   }
 
-  fatias(): readonly Fatia[] {
-    return this.#fatias;
-  }
-
   fatiaDe(classe: ClasseDeAtivo): Fatia {
     const fatia = this.#fatias.find((uma) => uma.classe === classe);
     return fatia ?? { classe, alvo: nada, banda: nada };

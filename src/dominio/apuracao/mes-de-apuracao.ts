@@ -84,6 +84,17 @@ export class MesDeApuracao implements ObjetoDeValor<MesDeApuracao> {
   }
   // #endregion
 
+  // #region meses-ate
+  // Os meses deste até o fim, um a um, com os dois dentro; vazio se o
+  // fim vem antes deste.
+  mesesAte(fim: MesDeApuracao): readonly MesDeApuracao[] {
+    const quantos = fim.#contagem() - this.#contagem() + 1;
+    return Array.from({ length: Math.max(quantos, 0) }, (_, indice) =>
+      this.deslocado(indice),
+    );
+  }
+  // #endregion
+
   // O mês depois deste, em que vencem os impostos deste.
   seguinte(): MesDeApuracao {
     return new MesDeApuracao(
