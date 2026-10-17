@@ -5,7 +5,7 @@ import {
   type Fatia,
   limitesDe,
 } from '../../src/dominio/alocacao/alocacao-alvo.js';
-import type { ClasseDeAtivo } from '../../src/dominio/ativo.js';
+import type { ClasseDeAtivo } from '../../src/dominio/classe-de-ativo.js';
 import { pontosBase } from '../../src/dominio/mercado/pontos-base.js';
 import { err } from '../../src/dominio/resultado.js';
 import { extrair } from '../apoio/resultado.js';

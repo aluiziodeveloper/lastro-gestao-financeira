@@ -1,4 +1,4 @@
-import type { ClasseDeAtivo } from '../ativo.js';
+import type { ClasseDeAtivo } from '../classe-de-ativo.js';
 import {
   cemPorCento,
   type PontosBase,

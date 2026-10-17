@@ -1,3 +1,4 @@
+import type { ClasseDeAtivo } from './classe-de-ativo.js';
 import type { DataDoCalendario } from './data-do-calendario.js';
 import type { Emissor } from './emissor.js';
 import { err, ok, type Result } from './resultado.js';
@@ -11,7 +12,6 @@ import type { Ticker } from './ticker.js';
 // #region catalogo-de-ativos
 // A classe do ativo é dado de catálogo, e não dedução pelo ticker: o
 // sufixo 11 serve a FIIs, a ETFs e a units, que são ações.
-export type ClasseDeAtivo = 'acao' | 'fii' | 'etf';
 
 export type ErroDeCatalogo =
   | { readonly tipo: 'ativo-fora-do-catalogo'; readonly ticker: Ticker }

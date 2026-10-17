@@ -1,4 +1,4 @@
-import type { ClasseDeAtivo } from '../ativo.js';
+import type { ClasseDeAtivo } from '../classe-de-ativo.js';
 import { garantirExaustividade } from '../exaustividade.js';
 import type { RegrasDeApuracao } from '../regime/regime-tributario.js';
 import type { NomeDaCategoria } from './apuracao-do-mes.js';

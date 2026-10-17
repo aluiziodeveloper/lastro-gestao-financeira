@@ -1,9 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-  CatalogoDeAtivos,
-  type ClasseDeAtivo,
-} from '../../src/dominio/ativo.js';
+import { CatalogoDeAtivos } from '../../src/dominio/ativo.js';
+import type { ClasseDeAtivo } from '../../src/dominio/classe-de-ativo.js';
 import type {
   ApuracaoDoMes,
   ResultadoDaCategoria,
