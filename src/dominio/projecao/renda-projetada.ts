@@ -3,6 +3,7 @@ import type { ModoDeArredondamento } from '../arredondamento.js';
 import type { Carteira } from '../carteira.js';
 import { Dinheiro } from '../dinheiro.js';
 import { type Provento, unidadesDe } from '../proventos/provento.js';
+import type { Ticker } from '../ticker.js';
 
 // #region projecao-renda
 // Projetar não é prever: a renda dos próximos doze meses repete a dos
@@ -69,6 +70,23 @@ function projetar(
     arredondamentoDaProjecao,
   );
   return { origem: provento, valor };
+}
+// #endregion
+
+// #region renda-dos-ativos
+// A renda projetada de alguns ativos, somada nos doze meses.
+export function rendaDos(
+  renda: RendaProjetada,
+  ativos: readonly Ticker[],
+): Dinheiro {
+  return somar(
+    renda.meses
+      .flatMap(({ proventos }) => proventos)
+      .filter(({ origem }) =>
+        ativos.some((ativo) => ativo.equivaleA(origem.ticker)),
+      )
+      .map(({ valor }) => valor),
+  );
 }
 // #endregion
 

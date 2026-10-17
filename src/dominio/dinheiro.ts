@@ -64,6 +64,29 @@ export class Dinheiro implements ObjetoDeValor<Dinheiro> {
   }
   // #endregion
 
+  // #region dinheiro-unidades-e-razao
+  // O valor de tantas unidades, que podem ser zero: o preço de uma
+  // posição zerada vale zero.
+  multiplicarPorUnidades(unidades: bigint): Dinheiro {
+    return new Dinheiro(this.#centavos * unidades);
+  }
+
+  // Quantas partes de uma escala este valor é do total: na escala de
+  // 10.000, R$ 1.980,00 de R$ 24.000,00 são 825 partes. O total não
+  // pode ser zero; quem pergunta verifica antes.
+  razaoSobre(
+    total: Dinheiro,
+    escala: bigint,
+    modo: ModoDeArredondamento,
+  ): bigint {
+    return dividirArredondando(
+      this.#centavos * escala,
+      total.#centavos,
+      modo,
+    );
+  }
+  // #endregion
+
   // #region dinheiro-excede
   excede(limite: Dinheiro): boolean {
     return this.#centavos > limite.#centavos;

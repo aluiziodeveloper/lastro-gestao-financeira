@@ -202,3 +202,43 @@ describe('Dinheiro: em reais', () => {
   });
 });
 // #endregion
+
+describe('Dinheiro: unidades e razão', () => {
+  it('multiplica por unidades, inclusive zero', () => {
+    const preco = Dinheiro.deCentavos(160_00n);
+
+    expect(preco.multiplicarPorUnidades(150n)).toEqual(
+      Dinheiro.deCentavos(24_000_00n),
+    );
+    expect(preco.multiplicarPorUnidades(0n)).toEqual(
+      Dinheiro.deCentavos(0n),
+    );
+  });
+
+  it.each([
+    [1_980_00n, 24_000_00n, 825n],
+    [1_200_00n, 14_400_00n, 833n],
+    [1n, 200_00n, 1n],
+  ])(
+    '%i centavos de %i são %i partes de 10.000',
+    (valor, total, partes) => {
+      const razao = Dinheiro.deCentavos(valor).razaoSobre(
+        Dinheiro.deCentavos(total),
+        10_000n,
+        'meio-para-cima',
+      );
+
+      expect(razao).toBe(partes);
+    },
+  );
+
+  it('a razão segue o modo pedido', () => {
+    const meio = Dinheiro.deCentavos(1n).razaoSobre(
+      Dinheiro.deCentavos(200_00n),
+      10_000n,
+      'truncar',
+    );
+
+    expect(meio).toBe(0n);
+  });
+});

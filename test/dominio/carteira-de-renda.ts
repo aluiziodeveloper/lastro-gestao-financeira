@@ -6,6 +6,7 @@ import {
 import { Dinheiro } from '../../src/dominio/dinheiro.js';
 import { criarIdDeCarteira } from '../../src/dominio/id-de-carteira.js';
 import type { Operacao } from '../../src/dominio/operacao.js';
+import type { Cotacoes } from '../../src/dominio/projecao/dividend-yield.js';
 import type { Provento } from '../../src/dominio/proventos/provento.js';
 import { Quantidade } from '../../src/dominio/quantidade.js';
 import { Ticker } from '../../src/dominio/ticker.js';
@@ -104,6 +105,13 @@ const jcps: readonly Provento[] = mesesPagos.map((mes) => ({
   bruto: Dinheiro.deCentavos(500n * 2n),
   quantidade: unidades(500),
 }));
+
+// As cotações de 31/10/2026: R$ 58.400,00 de valor de mercado.
+export const cotacoesDaTabela: Cotacoes = [
+  { ticker: ticker('HGLG11'), preco: Dinheiro.deCentavos(160_00n) },
+  { ticker: ticker('PETR4'), preco: Dinheiro.deCentavos(36_00n) },
+  { ticker: ticker('ITUB4'), preco: Dinheiro.deCentavos(40_00n) },
+];
 
 export const proventosDaTabela: readonly Provento[] = [
   ...rendimentos,
