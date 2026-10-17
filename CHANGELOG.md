@@ -2,6 +2,16 @@
 
 Todas as mudanças do Lastro, geradas dos commits semânticos.
 
+## 1.1.0 (17/10/2026)
+
+### Novidades
+
+- **cli:** adiciona o comando exportar
+
+### Testes
+
+- **desafio:** adiciona o desafio do comando exportar
+
 ## 1.0.0 (17/10/2026)
 
 ### Novidades
