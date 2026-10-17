@@ -40,6 +40,34 @@ A partir do Capítulo 2, cada capítulo tem um desafio. A branch `desafio/capXX`
 | `npm run test:cobertura` | Roda os testes com relatório de cobertura           |
 | `npm run verificar`      | Tipos, lint e testes, nessa ordem, como na CI       |
 
+## Como usar
+
+O Lastro tem duas entradas para quem o usa: a linha de comando, que importa o extrato da corretora e escreve o relatório do mês, e a API HTTP, descrita em [`docs/api.md`](docs/api.md). As duas guardam as operações num banco SQLite ou Postgres e chamam as mesmas regras.
+
+<!-- #region uso-cli -->
+
+### Linha de comando
+
+Compile o Lastro e importe um extrato em CSV, com o cabeçalho `Data;C/V;Ativo;Quantidade;Preço;Custos`:
+
+```sh
+npm ci
+npm run build
+node dist/adaptadores/cli/main.js importar \
+  exemplos/cap14/extrato-abril.csv --carteira minha --banco lastro.db
+```
+
+O banco é um arquivo SQLite, criado na primeira importação. Peça o relatório de um mês:
+
+```sh
+node dist/adaptadores/cli/main.js relatorio 2026-04 \
+  --carteira minha --banco lastro.db
+```
+
+O código de saída diz como foi: `0`, feito; `1`, o Lastro recusou o pedido, com o motivo na saída; `2`, o comando não seguiu o uso.
+
+<!-- #endregion -->
+
 ## O que já foi implementado
 
 As doze regras de negócio do Lastro estão descritas em `test/especificacao/regras.test.ts`. Cada regra fica pendente até o capítulo que a implementa; rode `npm test` para ver quais já saíram da lista.

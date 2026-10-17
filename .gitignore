@@ -15,5 +15,8 @@ reports/
 Thumbs.db
 *:Zone.Identifier
 
+# Bancos SQLite criados pela CLI
+*.db
+
 # Variáveis locais
 .env
