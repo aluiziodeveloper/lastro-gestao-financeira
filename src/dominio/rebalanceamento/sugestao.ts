@@ -1,4 +1,8 @@
-import type { ClasseDeAtivo } from '../classe-de-ativo.js';
+import type { Composicao } from '../alocacao/composicao.js';
+import {
+  type ClasseDeAtivo,
+  classesDeAtivo,
+} from '../classe-de-ativo.js';
 import { Dinheiro } from '../dinheiro.js';
 
 // #region sugestao
@@ -22,3 +26,34 @@ export const nenhumValor: ValoresPorClasse = {
   etf: zero,
 };
 // #endregion
+
+export const propostaVazia: Sugestao = {
+  compras: nenhumValor,
+  vendas: nenhumValor,
+  caixa: zero,
+};
+
+// O total das vendas de todas as classes.
+export function totalDe(valores: ValoresPorClasse): Dinheiro {
+  return classesDeAtivo.reduce(
+    (total, classe) => total.somar(valores[classe]),
+    zero,
+  );
+}
+
+// A carteira como fica depois das vendas, antes das compras.
+export function depoisDasVendas(
+  { total, porClasse }: Composicao,
+  vendas: ValoresPorClasse,
+): Composicao {
+  const restante = (classe: ClasseDeAtivo): Dinheiro =>
+    porClasse[classe].subtrair(vendas[classe]);
+  return {
+    total: total.subtrair(totalDe(vendas)),
+    porClasse: {
+      acao: restante('acao'),
+      fii: restante('fii'),
+      etf: restante('etf'),
+    },
+  };
+}

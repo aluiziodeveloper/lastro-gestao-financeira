@@ -7,7 +7,13 @@ import {
 } from '../classe-de-ativo.js';
 import type { Dinheiro } from '../dinheiro.js';
 import { cemPorCento } from '../mercado/pontos-base.js';
-import { nenhumValor, type Sugestao } from './sugestao.js';
+import type { PoliticaDeRebalanceamento } from './politica.js';
+import {
+  depoisDasVendas,
+  nenhumValor,
+  type Sugestao,
+  totalDe,
+} from './sugestao.js';
 
 // #region por-aporte
 // O valor-alvo de uma classe trunca o centavo: a compra nunca passa do
@@ -68,4 +74,22 @@ function maiorFaltaPrimeiro(uma: Falta, outra: Falta): number {
     Number(uma.falta.excede(outra.falta))
   );
 }
+// #endregion
+
+// #region investir-o-caixa
+// Política: o aporte e o dinheiro das vendas da proposta vão às
+// classes abaixo do alvo, pela heurística de porAporte.
+export const investirOCaixa: PoliticaDeRebalanceamento = (
+  { composicao, alocacao, recursos },
+  proposta,
+) => {
+  const vendido = totalDe(proposta.vendas);
+  const depois = depoisDasVendas(composicao, proposta.vendas);
+  const { compras, caixa } = porAporte(
+    depois,
+    alocacao,
+    recursos.aporte.somar(vendido),
+  );
+  return { ...proposta, compras, caixa };
+};
 // #endregion

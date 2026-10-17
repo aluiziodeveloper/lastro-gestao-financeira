@@ -4,8 +4,12 @@ import { desenquadramentos } from '../alocacao/desenquadramento.js';
 import type { Dinheiro } from '../dinheiro.js';
 import { cemPorCento } from '../mercado/pontos-base.js';
 import type { RegrasDeApuracao } from '../regime/regime-tributario.js';
-import { arredondamentoDoAlvo, porAporte } from './aportes.js';
-import { nenhumValor, type Sugestao, zero } from './sugestao.js';
+import { arredondamentoDoAlvo } from './aportes.js';
+import type {
+  Especificacao,
+  PoliticaDeRebalanceamento,
+} from './politica.js';
+import { zero } from './sugestao.js';
 
 // #region vendas-na-margem
 // O que ainda se vende de ações no mês sem perder a isenção: o limite
@@ -22,37 +26,28 @@ export function margemDeIsencao(
   return limite.subtrair(vendidoNoMes);
 }
 
-export interface Recursos {
-  readonly aporte: Dinheiro;
-  readonly margem: Dinheiro;
-}
-
-// Só as ações se vendem, só quando estão acima da banda, só o que
-// passa do alvo e só até a margem. O dinheiro da venda, com o aporte,
-// vai às classes abaixo do alvo, como um aporte.
-export function rebalancear(
-  composicao: Composicao,
-  alocacao: AlocacaoAlvo,
-  { aporte, margem }: Recursos,
-): Sugestao {
-  const acima = desenquadramentos(composicao, alocacao).some(
+// A especificação: as ações estão acima da banda.
+export const acoesAcimaDaBanda: Especificacao = ({
+  composicao,
+  alocacao,
+}) =>
+  desenquadramentos(composicao, alocacao).some(
     ({ classe, direcao }) => classe === 'acao' && direcao === 'acima',
   );
-  const excesso = acima
-    ? excessoDeAcoes(composicao, alocacao, aporte)
-    : zero;
-  const venda = excesso.excede(margem) ? margem : excesso;
-  const depois: Composicao = {
-    ...composicao,
-    total: composicao.total.subtrair(venda),
-    porClasse: {
-      ...composicao.porClasse,
-      acao: composicao.porClasse.acao.subtrair(venda),
-    },
-  };
-  const compras = porAporte(depois, alocacao, aporte.somar(venda));
-  return { ...compras, vendas: { ...nenhumValor, acao: venda } };
-}
+
+// Política: vender o que passa do alvo nas ações, só até a margem.
+// Só as ações se vendem: toda venda de FII ou ETF com lucro paga
+// imposto.
+export const venderAcoesNaMargem: PoliticaDeRebalanceamento = (
+  { composicao, alocacao, recursos },
+  proposta,
+) => {
+  const excesso = excessoDeAcoes(composicao, alocacao, recursos.aporte);
+  const venda = excesso.excede(recursos.margem)
+    ? recursos.margem
+    : excesso;
+  return { ...proposta, vendas: { ...proposta.vendas, acao: venda } };
+};
 
 // O valor das ações acima do alvo, calculado sobre o total com o
 // aporte, que a venda não muda.

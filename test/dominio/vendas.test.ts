@@ -6,10 +6,8 @@ import { estadoInicial } from '../../src/dominio/apuracao/estado-da-apuracao.js'
 import type { Composicao } from '../../src/dominio/alocacao/composicao.js';
 import { Dinheiro } from '../../src/dominio/dinheiro.js';
 import { nenhumValor } from '../../src/dominio/rebalanceamento/sugestao.js';
-import {
-  margemDeIsencao,
-  rebalancear,
-} from '../../src/dominio/rebalanceamento/vendas.js';
+import { rebalancear } from '../../src/dominio/rebalanceamento/rebalanceamento.js';
+import { margemDeIsencao } from '../../src/dominio/rebalanceamento/vendas.js';
 import { extrair } from '../apoio/resultado.js';
 import { carteiraCom } from './carteira-de-renda.js';
 import {
