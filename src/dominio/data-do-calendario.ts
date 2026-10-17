@@ -44,6 +44,25 @@ export function primeiroDiaDoMesSeguinte(
 }
 // #endregion
 
+// #region data-em-sao-paulo
+// O dia do calendário em São Paulo num instante: o mês corrente do
+// investidor é o de lá, e não o de UTC. O fuso vai pelo nome, e não
+// por um deslocamento de três horas, porque o banco de fusos sabe que
+// houve horário de verão até 2019. O formato en-CA escreve a data como
+// AAAA-MM-DD. Como acima, a data nasce do calendário, e só este módulo
+// aplica a marca.
+const emSaoPaulo = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'America/Sao_Paulo',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+
+export function dataEmSaoPaulo(instante: Date): DataDoCalendario {
+  return emSaoPaulo.format(instante) as DataDoCalendario;
+}
+// #endregion
+
 function existeNoCalendario(
   ano: number,
   mes: number,
