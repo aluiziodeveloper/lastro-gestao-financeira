@@ -108,6 +108,10 @@ curl -s localhost:3000/carteiras/minha/relatorios/2026-04
 
 <!-- #endregion -->
 
+## Versões
+
+O Lastro segue o versionamento semântico: a versão maior muda quando o contrato público muda de forma incompatível. O que entrou em cada versão está em [`CHANGELOG.md`](CHANGELOG.md), gerado dos commits por `npm run changelog`.
+
 ## O que já foi implementado
 
 As doze regras de negócio do Lastro estão descritas em `test/especificacao/regras.test.ts`. Cada regra fica pendente até o capítulo que a implementa; rode `npm test` para ver quais já saíram da lista.
