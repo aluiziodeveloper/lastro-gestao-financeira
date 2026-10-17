@@ -5,7 +5,7 @@ import { relatorioDoMesDaCarteira } from '../../src/aplicacao/relatorio-da-carte
 import { CatalogoDeAtivos } from '../../src/dominio/ativo.js';
 import { criarIdDeCarteira } from '../../src/dominio/id-de-carteira.js';
 import { Ticker } from '../../src/dominio/ticker.js';
-import { repositorioDeTeste } from '../apoio/repositorio-de-teste.js';
+import { repositorioEmMemoria } from '../../src/adaptadores/memoria/repositorio.js';
 import { extrair } from '../apoio/resultado.js';
 import { umaCompra, umaVenda } from '../dominio/construtores.js';
 import { mes, referenciasCom } from '../dominio/referencias.js';
@@ -51,7 +51,7 @@ const operacoes = [
 // #region caso-de-uso-relatorio-teste
 describe('Relatório do mês da carteira', () => {
   it('apura de fevereiro a abril e devolve abril', async () => {
-    const repositorio = repositorioDeTeste();
+    const repositorio = repositorioEmMemoria();
     await registrarOperacoes(repositorio, id, operacoes);
 
     const linhas = extrair(
@@ -70,7 +70,7 @@ describe('Relatório do mês da carteira', () => {
   });
 
   it('num mês antes das operações, devolve o mês vazio', async () => {
-    const repositorio = repositorioDeTeste();
+    const repositorio = repositorioEmMemoria();
     await registrarOperacoes(repositorio, id, operacoes);
 
     const linhas = extrair(

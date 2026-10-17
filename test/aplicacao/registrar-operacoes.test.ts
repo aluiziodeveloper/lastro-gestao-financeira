@@ -4,7 +4,7 @@ import { registrarOperacoes } from '../../src/aplicacao/registrar-operacoes.js';
 import { criarIdDeCarteira } from '../../src/dominio/id-de-carteira.js';
 import { err } from '../../src/dominio/resultado.js';
 import { Ticker } from '../../src/dominio/ticker.js';
-import { repositorioDeTeste } from '../apoio/repositorio-de-teste.js';
+import { repositorioEmMemoria } from '../../src/adaptadores/memoria/repositorio.js';
 import { extrair } from '../apoio/resultado.js';
 import { umaCompra, umaVenda } from '../dominio/construtores.js';
 
@@ -19,7 +19,7 @@ const compra = umaCompra({
 // #region caso-de-uso-registrar-teste
 describe('Registrar operações', () => {
   it('grava as operações aceitas e devolve a carteira', async () => {
-    const repositorio = repositorioDeTeste();
+    const repositorio = repositorioEmMemoria();
 
     const carteira = extrair(
       await registrarOperacoes(repositorio, id, [compra]),
@@ -30,7 +30,7 @@ describe('Registrar operações', () => {
   });
 
   it('não grava nada se a carteira recusa uma operação', async () => {
-    const repositorio = repositorioDeTeste();
+    const repositorio = repositorioEmMemoria();
     const vendaDemais = umaVenda({
       data: '2026-02-03',
       quantidade: 200,
@@ -47,7 +47,7 @@ describe('Registrar operações', () => {
   });
 
   it('recusa a operação já registrada, pelo id', async () => {
-    const repositorio = repositorioDeTeste();
+    const repositorio = repositorioEmMemoria();
     await registrarOperacoes(repositorio, id, [compra]);
 
     const deNovo = await registrarOperacoes(repositorio, id, [compra]);
@@ -59,7 +59,7 @@ describe('Registrar operações', () => {
   });
 
   it('aceita uma operação com outro identificador', async () => {
-    const repositorio = repositorioDeTeste();
+    const repositorio = repositorioEmMemoria();
     const outra = umaCompra({
       id: 'op-002',
       data: '2026-02-02',
