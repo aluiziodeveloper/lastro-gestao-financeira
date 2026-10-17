@@ -30,6 +30,40 @@ jobs:
       - name: Testes
         run: npm test
 
+  # #region ci-postgres
+  # O contrato do repositório contra um Postgres de verdade: a CI sobe o
+  # banco como serviço, num contêiner, e a variável diz onde ele está.
+  contrato-postgres:
+    name: Contrato no Postgres
+    needs: verificar
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: lastro
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready --health-interval 5s
+          --health-timeout 5s --health-retries 10
+    env:
+      LASTRO_POSTGRES_URL: postgres://postgres:lastro@localhost/postgres
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Instalação das dependências
+        run: npm ci
+
+      - name: Contrato no Postgres
+        run: npx vitest run contrato/postgres
+  # #endregion
+
   # #region ci-mutacao
   # Só depois de tipos, lint e testes verdes: a mutação roda a suíte
   # inteira contra cada mutante, e o Stryker falha abaixo de 85%.
