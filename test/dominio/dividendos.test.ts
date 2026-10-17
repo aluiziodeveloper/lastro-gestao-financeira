@@ -17,6 +17,7 @@ import type {
 } from '../../src/dominio/proventos/provento.js';
 import { err, ok } from '../../src/dominio/resultado.js';
 import { Ticker } from '../../src/dominio/ticker.js';
+import { Quantidade } from '../../src/dominio/quantidade.js';
 import { extrair } from '../apoio/resultado.js';
 import { mes, referenciasCom } from './referencias.js';
 
@@ -63,12 +64,15 @@ interface Pagamento {
   readonly aprovacao?: string;
 }
 
+const mil = extrair(Quantidade.criar(1_000));
+
 function dividendo(pagamento: Pagamento): Dividendo {
   return {
     tipo: 'dividendo',
     ticker: ticker(pagamento.codigo),
     pagamento: data(pagamento.pagamento ?? '2026-03-16'),
     bruto: centavos(pagamento.bruto),
+    quantidade: mil,
     anoDoLucro: pagamento.anoDoLucro ?? 2026,
     aprovacao: data(pagamento.aprovacao ?? '2026-03-02'),
   };
@@ -193,6 +197,7 @@ describe('R8 · o que fica fora da soma do mês', () => {
         ticker: ticker('VALE3'),
         pagamento: data('2026-03-16'),
         bruto: centavos(60_000_00n),
+        quantidade: mil,
       },
     ];
 

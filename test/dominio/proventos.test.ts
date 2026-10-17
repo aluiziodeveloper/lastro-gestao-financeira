@@ -29,6 +29,7 @@ function umDividendo(pagamento: string, bruto: bigint): Dividendo {
     ticker: extrair(Ticker.criar('VALE3')),
     pagamento: extrair(criarDataDoCalendario(pagamento)),
     bruto: centavos(bruto),
+    quantidade: extrair(Quantidade.criar(1_000)),
     anoDoLucro: 2025,
     aprovacao: extrair(criarDataDoCalendario('2025-12-01')),
   };
@@ -63,12 +64,13 @@ describe('Proventos · dividendo', () => {
 // #endregion
 
 function umJcp(pagamento: string, bruto: bigint): Jcp {
-  const { ticker } = umDividendo(pagamento, bruto);
+  const { ticker, quantidade } = umDividendo(pagamento, bruto);
   return {
     tipo: 'jcp',
     ticker,
     pagamento: extrair(criarDataDoCalendario(pagamento)),
     bruto: centavos(bruto),
+    quantidade,
   };
 }
 

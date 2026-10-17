@@ -9,21 +9,25 @@ import type { Ticker } from '../ticker.js';
 // o seu tratamento fiscal.
 // O dividendo traz também o ano do lucro que o gerou e a data em que
 // a distribuição foi aprovada, que decidem a transição da lei de 2026.
+// A quantidade é a de ações que davam direito ao provento.
 export interface Dividendo {
   readonly tipo: 'dividendo';
   readonly ticker: Ticker;
   readonly pagamento: DataDoCalendario;
   readonly bruto: Dinheiro;
+  readonly quantidade: Quantidade;
   readonly anoDoLucro: number;
   readonly aprovacao: DataDoCalendario;
 }
 
-// Juros sobre capital próprio: a data é a do pagamento ou do crédito.
+// Juros sobre capital próprio: a data é a do pagamento ou do crédito,
+// e a quantidade, a de ações que davam direito a eles.
 export interface Jcp {
   readonly tipo: 'jcp';
   readonly ticker: Ticker;
   readonly pagamento: DataDoCalendario;
   readonly bruto: Dinheiro;
+  readonly quantidade: Quantidade;
 }
 
 // Rendimento de FII: as cotas são as que o investidor tinha quando

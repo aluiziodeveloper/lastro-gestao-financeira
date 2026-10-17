@@ -18,10 +18,12 @@ import type { DefinicaoDeRegime } from '../../src/dominio/regime/regime-tributar
 import { definicoesDoLastro } from '../../src/dominio/regime/regimes.js';
 import { RegimesTributarios } from '../../src/dominio/regime/regimes-tributarios.js';
 import { Ticker } from '../../src/dominio/ticker.js';
+import { Quantidade } from '../../src/dominio/quantidade.js';
 import { extrair } from '../apoio/resultado.js';
 import { umaCompra, umaVenda } from './construtores.js';
 import { mes, regimesDoLastro } from './referencias.js';
 
+const mil = extrair(Quantidade.criar(1_000));
 const [petr4, vale3] = ['PETR4', 'VALE3'].map((codigo) =>
   extrair(Ticker.criar(codigo)),
 ) as [Ticker, Ticker];
@@ -137,6 +139,7 @@ describe('Antes e depois das viradas de 2024 e de 2026', () => {
             ticker: vale3,
             pagamento: data(pagamento),
             bruto: centavos(1_000_00n),
+            quantidade: mil,
           },
           referencias,
         ),
@@ -155,6 +158,7 @@ describe('Antes e depois das viradas de 2024 e de 2026', () => {
         ticker: vale3,
         pagamento: data(`${texto}-15`),
         bruto: centavos(90_000_00n),
+        quantidade: mil,
         anoDoLucro: 2026,
         aprovacao: data(`${texto}-01`),
       };
