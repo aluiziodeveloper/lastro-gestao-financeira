@@ -8,9 +8,10 @@ import { ok, type Result } from '../resultado.js';
 export type ErroDeSeparacao = ErroDeOperacao | ErroDeQuantidade;
 
 // #region dividir-operacao
-// Divide um negócio em dois. Os custos vão na proporção da quantidade
-// (IN RFB 1.585/2015, art. 56, § 4º): a parte arredonda pela política
-// do rateio, e o resto leva a diferença.
+// Divide um negócio em dois. A IN RFB 1.585/2015, art. 56, § 4º,
+// rateia os custos pelo valor financeiro de cada operação; as duas
+// partes têm o mesmo preço unitário, e o valor segue a quantidade. A
+// parte arredonda pela política do rateio, e o resto leva a diferença.
 export function dividir(
   operacao: Operacao,
   quantidade: bigint,
