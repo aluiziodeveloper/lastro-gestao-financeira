@@ -6,6 +6,12 @@ O Lastro registra operações na B3, mantém posições e preço médio, apura o
 
 > **Aviso:** o Lastro é material didático. Não é aconselhamento fiscal nem financeiro e não deve ser usado para calcular impostos reais. As regras fiscais seguem a legislação de outubro de 2026, a data de corte do livro, e podem mudar depois dela.
 
+## O livro
+
+_Domínio à Prova de Bugs_ está publicado na Amazon como ebook Kindle, no KDP Select: à venda e disponível no Kindle Unlimited ([amazon.com.br/dp/B0HNXSK6K1](https://www.amazon.com.br/dp/B0HNXSK6K1), ISBN 978-65-02-44961-5). A edição impressa, em brochura, sai em breve pela própria Amazon, que imprime sob demanda e envia o exemplar ao leitor (ISBN 978-65-02-46065-8).
+
+O livro tem 15 capítulos em 4 partes. Cada capítulo explica uma técnica e a aplica ao Lastro: objetos de valor, uniões discriminadas e tipos marcados; agregados e invariantes; TDD e refatoração; testes baseados em propriedades; testes de mutação; regras fiscais com vigência; portas e adaptadores; e a entrega como pacote e como imagem Docker.
+
 ## Como acompanhar o livro
 
 Cada capítulo termina numa _tag_ deste repositório (`cap01` a `cap15`, e a versão final `v1.0.0`). Para ver o código exatamente como ele está ao fim de um capítulo:
